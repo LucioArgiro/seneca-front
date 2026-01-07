@@ -1,8 +1,8 @@
 import  {Navbar}  from "../components/Navbar";
 import { Hero } from "../components/Hero";
-import { Barberos } from "../components/Barberos";
 import { Precios } from "../components/Precios";
 import { Footer } from "../components/Footer";
+import Equipo from "./Equipo";
 
 
 const Landing = () => {
@@ -10,7 +10,7 @@ const Landing = () => {
     <div className="font-sans text-gray-800">
       <Navbar />
       <Hero />
-      <Barberos />
+      <Equipo />
       <Precios />
       <Footer />
     </div>

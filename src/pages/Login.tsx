@@ -20,13 +20,14 @@ const Login = () => {
       const data = await loginRequest(email, password);
       setLogin(data.access_token, data.user);
 
-      if (data.user.role === 'BARBER') {
+      if (data.user.role === 'ADMIN') {
         navigate('/admin/agenda');
-      } else {
+      } else if (data.user.role=== 'BARBER') {
+        navigate('/admin/agenda');
+      }else
         navigate('/turnos');
       }
-
-    } catch (err: any) {
+     catch (err: any) {
       console.error(err);
       setError('Credenciales inválidas. Intenta de nuevo.');
     }

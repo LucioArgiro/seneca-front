@@ -105,7 +105,7 @@ const ClientDashboard = () => {
 
                           <h3 className="text-xl font-bold text-slate-800 mb-1">{turno.servicio?.nombre}</h3>
                           <p className="text-slate-500 text-sm mb-5 flex items-center gap-1">
-                            Con <span className="font-semibold text-slate-700">{turno.barbero?.fullname}</span>
+                            Con <span className="font-semibold text-slate-700">{turno.barbero?.usuario?.fullname}</span>
                           </p>
 
                           <div className="flex flex-wrap gap-4 text-sm">

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { getServicios, createServicio, updateServicio, type Servicio } from '../api/servicios';
-import { ServiceModal } from '../components/dashboard/ServiceModal';
+import { getServicios, createServicio, updateServicio, type Servicio } from '../../api/servicios';
+import { ServiceModal } from '../../components/dashboard/ServiceModal';
 import { Edit, Power, Star, Clock, CheckCircle, Plus } from 'lucide-react';
 
 const AdminServicios = () => {
