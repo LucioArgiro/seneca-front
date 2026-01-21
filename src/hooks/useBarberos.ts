@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { getBarberos } from '../api/usuarios';
+import { barberosApi } from '../api/barberos';
+import type { BarberoPerfil } from '../types'; 
 
 export const useBarberos = () => {
-  const query = useQuery({
-    queryKey: ['barbero'],
-    queryFn: getBarberos, 
-    staleTime: 1000 * 60 * 10,
+  const query = useQuery<BarberoPerfil[]>({
+    queryKey: ['barberos'],
+    queryFn: barberosApi.getAll,
+    staleTime: 1000 * 60 * 10, 
   });
 
   return query;

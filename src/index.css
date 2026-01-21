@@ -1,5 +1,27 @@
 @import "tailwindcss";
-
+/* @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap');
+ */
 html {
   scroll-behavior: smooth;
 }
+
+/* En tu index.css */
+.glide__bullet--active {
+  background-color: #c4a484 !important; /* Tu color beige */
+  width: 2rem !important; /* w-8 de tailwind */
+}
+
+/*  p, span, div, a, button, input, label, li, td, th {
+  font-family: 'Roboto', serif;
+  font-weight: 500;
+  font-size: 1.3rem;
+  letter-spacing: 0.03em;
+}
+
+H1, h2, h3, h4, h5, h6 {
+  font-family: 'DM Serif Display', serif;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+ */

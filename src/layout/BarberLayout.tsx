@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Calendar, Users, LogOut } from 'lucide-react';
+import { Calendar, Users, LogOut, Mail } from 'lucide-react'; // 👈 1. Importamos el icono Mail
 import { useAuthStore } from '../store/auth';
 
 export const BarberLayout = () => {
@@ -20,12 +20,24 @@ export const BarberLayout = () => {
         </div>
 
         <nav className="flex-1 px-4 space-y-2">
+          
           <Link to="/barber/agenda" className={`flex items-center gap-3 p-3 rounded-xl transition ${isActive('/barber/agenda')}`}>
             <Calendar size={20} /> Agenda de Turnos
           </Link>
+
+          {/* 👇 2. NUEVO LINK: MENSAJES */}
+          <Link to="/barber/mensajes" className={`flex items-center gap-3 p-3 rounded-xl transition ${isActive('/barber/mensajes')}`}>
+            <Mail size={20} /> Buzón de Mensajes
+          </Link>
+
           <Link to="/barber/historial" className={`flex items-center gap-3 p-3 rounded-xl transition ${isActive('/barber/historial')}`}>
             <Users size={20} /> Historial Clientes
           </Link>
+
+          <Link to="/barber/perfil" className={`flex items-center gap-3 p-3 rounded-xl transition ${isActive('/barber/perfil')}`}>
+            <Users size={20} /> Mi Perfil
+          </Link>
+          
         </nav>
 
         <div className="p-4 border-t border-slate-800">

@@ -1,15 +1,38 @@
-import { Link } from 'react-router-dom';
-import { User, Scissors, MapPin, AlertCircle } from 'lucide-react';
-import { useBarberos } from '../hooks/useBarberos'; // <--- Importamos nuestro Hook
+import { useCallback, useEffect } from 'react'; // 👈 Agregamos useEffect
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
+import { ChevronLeft, ChevronRight, User, AlertCircle } from 'lucide-react';
+import { useBarberos } from '../hooks/useBarberos';
+import { BarberCard } from '../components/BarberCard';
 
 const Equipo = () => {
-  // 1. Todo el estado y la petición se reducen a esta línea:
   const { data: barberos, isLoading, isError } = useBarberos();
+  const [emblaRef, emblaApi] = useEmblaCarousel({loop: true, align: 'start',}, [
+    Autoplay({delay: 4000, stopOnInteraction: false, stopOnMouseEnter: true})]);
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
+  useEffect(() => {
+    if (!emblaApi) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowLeft') emblaApi.scrollPrev();
+      if (event.key === 'ArrowRight') emblaApi.scrollNext();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [emblaApi]);
+  const listaBarberos = barberos && barberos.length > 0 && barberos.length < 6
+    ? [...barberos, ...barberos, ...barberos]
+    : barberos;
 
   return (
     <section className="py-16 bg-white min-h-[80vh]" id="equipo">
       <div className="container mx-auto px-4">
-        
+
         {/* TITULO */}
         <div className="text-center mb-16 max-w-2xl mx-auto">
           <span className="text-blue-600 font-bold tracking-wider uppercase text-sm">Nuestro Staff</span>
@@ -17,73 +40,50 @@ const Equipo = () => {
           <p className="text-slate-500 text-lg">Profesionales dedicados a definir tu mejor estilo.</p>
         </div>
 
-        {/* CONTENIDO (Manejo de estados automático) */}
-        
-        {/* CASO 1: CARGANDO */}
-        {isLoading && (
-            <div className="text-center py-20 text-slate-400 animate-pulse">
-                Cargando equipo...
-            </div>
-        )}
-
-        {/* CASO 2: ERROR (Ahora sí lo mostramos visualmente) */}
+        {/* CARGANDO / ERROR */}
+        {isLoading && <div className="text-center py-20 text-slate-400 animate-pulse">Cargando equipo...</div>}
         {isError && (
-            <div className="flex flex-col items-center justify-center py-10 text-red-500 bg-red-50 rounded-2xl border border-red-100">
-                <AlertCircle size={32} className="mb-2" />
-                <p>No pudimos cargar la lista de barberos.</p>
-            </div>
+          <div className="flex justify-center text-red-500 bg-red-50 p-4 rounded-xl border border-red-100">
+            <AlertCircle className="mr-2" /> Error al cargar barberos
+          </div>
         )}
 
-        {/* CASO 3: DATA LISTA */}
-        {!isLoading && !isError && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-                
-                {barberos?.length === 0 ? (
-                    <div className="col-span-full text-center py-10 text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                        <User size={48} className="mx-auto mb-2 opacity-50"/>
-                        <p>Aún no hay barberos registrados.</p>
-                    </div>
-                ) : (
-                    barberos?.map((barbero) => (
-                        <div key={barbero.id} className="group relative h-96 rounded-2xl overflow-hidden shadow-lg bg-slate-100 border border-slate-200">
-                            
-                            {/* FOTO */}
-                            {barbero.fotoUrl ? (
-                                <img src={barbero.fotoUrl} alt={barbero.fullname} className="w-full h-full object-cover transition duration-700 group-hover:scale-105" />
-                            ) : (
-                                <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-100">
-                                    <User size={64} /><span className="text-sm mt-2 font-medium">Sin foto</span>
-                                </div>
-                            )}
-                            
-                            {/* OVERLAY */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent flex flex-col justify-end p-6">
-                                <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                    
-                                    {(barbero.provincia || barbero.pais) && (
-                                        <p className="text-blue-400 font-bold text-xs uppercase tracking-wider mb-2 flex items-center gap-1">
-                                            <MapPin size={12} /> {barbero.provincia}{barbero.provincia && barbero.pais ? ', ' : ''}{barbero.pais}
-                                        </p>
-                                    )}
+        {/* CONTENIDO */}
+        {!isLoading && !isError && listaBarberos && (
+          <>
+            {barberos && barberos.length === 0 ? (
+              <div className="text-center text-slate-400"><User size={48} className="mx-auto" /> No hay personal.</div>
+            ) : (
 
-                                    <h3 className="text-2xl font-bold text-white mb-2">{barbero.fullname}</h3>
-                                    
-                                    <p className="text-slate-300 text-sm leading-relaxed mb-6 line-clamp-2 group-hover:line-clamp-none transition-all">
-                                        {barbero.biografia || "Experto en cortes clásicos y modernos."}
-                                    </p>
-                                    
-                                    <Link 
-                                        to={`/barberos/${barbero.id}`} 
-                                        className="w-full py-3 bg-white hover:bg-blue-50 text-slate-900 font-bold rounded-xl transition flex items-center justify-center gap-2 active:scale-95 shadow-lg"
-                                    >
-                                        <Scissors size={18} className="text-blue-600" /> Ver Perfil
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    ))
-                )}
-            </div>
+              <div className="relative px-8 md:px-20 lg:px-32 group">
+                
+                {/* BOTÓN IZQUIERDO */}
+                <button onClick={scrollPrev} className="absolute left-10 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full flex items-center justify-center bg-[#c4a484] text-white shadow-md transition-all duration-300 ease-out hover:bg-[#a88b6e] hover:scale-110 hover:shadow-lg active:scale-95 hidden md:flex">
+                    <ChevronLeft size={24} />
+                </button>
+
+                {/* VIEWPORT */}
+                <div className="overflow-hidden" ref={emblaRef}>
+                  <div className="flex -ml-4 py-4">
+                    {listaBarberos.map((barbero, index) => (
+                      <div
+                        key={`${barbero.id}-${index}`}
+                        className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 pl-4"
+                      >
+                        <BarberCard barbero={barbero} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* BOTÓN DERECHO */}
+                <button onClick={scrollNext} className="absolute right-10 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full flex items-center justify-center bg-[#c4a484] text-white shadow-md transition-all duration-300 ease-out hover:bg-[#a88b6e] hover:scale-110 hover:shadow-lg active:scale-95 hidden md:flex">
+                    <ChevronRight size={24} />
+                </button>
+
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>

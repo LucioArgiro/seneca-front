@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getTurnos, type TurnoResponse } from '../api/turnos';
+import { turnosApi, type TurnoResponse } from '../api/turnos';
 import { barberosApi } from '../api/barberos';
 
 export interface ClienteCRM {
@@ -22,7 +22,7 @@ export const useClientesCRM = () => {
   // 2. PETICIONES CON TANSTACK QUERY (En paralelo)
   const queryTurnos = useQuery({
     queryKey: ['turnos', 'admin-historial'],
-    queryFn: getTurnos,
+    queryFn: turnosApi.getHistorial,
   });
 
   const queryBarberos = useQuery({
@@ -49,13 +49,14 @@ export const useClientesCRM = () => {
       if (!clienteId) return acc;
 
       // Adaptar según tu estructura de datos (si usuario está anidado o plano)
-      const nombre = turno.cliente?.usuario?.fullname  || 'Anónimo';
+      const nombre = turno.cliente?.usuario?.nombre || 'Anónimo';
+      const apellido = turno.cliente?.usuario?.apellido || 'Anónimo';
       const email = turno.cliente?.usuario?.email || 'Sin Email';
 
       if (!acc[clienteId]) {
         acc[clienteId] = {
           id: clienteId,
-          fullname: nombre,
+          fullname: `${nombre} ${apellido}`,
           email: email,
           totalTurnos: 0,
           totalGastado: 0,

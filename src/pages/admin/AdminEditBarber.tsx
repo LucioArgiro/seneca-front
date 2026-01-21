@@ -1,40 +1,71 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { barberosApi } from '../../api/barberos';
-import { type CreateBarberoDto } from '../../types';
-import { User, Mail, Lock, Hash, Phone, Calendar, Users, Briefcase, Save, CalendarDays, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { User, Mail, Lock, Hash, Phone, Calendar, Users, Briefcase, Save, CalendarDays, ArrowLeft, ShieldCheck, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { AgendaSelector } from '../../components/admin/AgendaSelector';
 
-const initialForm: CreateBarberoDto = {
-  fullname: '',
-  email: '',
-  password: '',
-  dni: '',
-  telefono: '',
-  edad: 18,
-  sexo: 'M',
-  biografia: 'Profesional del equipo Séneca',
-  especialidad: 'Estilista'
-};
-
-export const AdminCreateBarber = () => {
+export const AdminEditBarber = () => {
+  const { id } = useParams(); // Obtenemos el ID de la URL
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
-  const [form, setForm] = useState<CreateBarberoDto>(initialForm);
+
+  // Estado del formulario
+  const [form, setForm] = useState({
+    fullname: '',
+    email: '',
+    password: '', // Se mantiene vacío a menos que quiera cambiarla
+    dni: '',
+    telefono: '',
+    edad: 18,
+    sexo: 'M',
+    biografia: '',
+    especialidad: ''
+  });
+
   const [horarios, setHorarios] = useState<any[]>([]);
 
-  const createMutation = useMutation({
-    mutationFn: barberosApi.create,
+  // 1. CARGAR DATOS DEL BARBERO
+  const { data: barbero, isLoading, isError } = useQuery({
+    queryKey: ['barbero', id],
+    queryFn: () => barberosApi.getOne(id!), // Asumiendo que tienes este método
+    enabled: !!id, // Solo ejecuta si hay ID
+  });
+
+  // 2. RELLENAR FORMULARIO CUANDO LLEGAN LOS DATOS
+  useEffect(() => {
+    if (barbero) {
+      setForm({
+        fullname: barbero.usuario.fullname,
+        email: barbero.usuario.email,
+        password: '', // No rellenamos la contraseña por seguridad
+        dni: barbero.dni || '',
+        telefono: barbero.telefono || '',
+        edad: barbero.edad || 18,
+        sexo: barbero.sexo || 'M',
+        biografia: barbero.biografia || '',
+        especialidad: barbero.especialidad || ''
+      });
+      
+      // Cargamos la agenda existente
+      if (barbero.horarios) {
+        setHorarios(barbero.horarios);
+      }
+    }
+  }, [barbero]);
+
+  // 3. MUTACIÓN DE ACTUALIZACIÓN
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => barberosApi.update(id!, data),
     onSuccess: () => {
-      toast.success('¡Profesional dado de alta correctamente!');
+      toast.success('¡Cambios guardados correctamente!');
       queryClient.invalidateQueries({ queryKey: ['barberos-admin'] });
-      navigate('/admin/equipo'); 
+      queryClient.invalidateQueries({ queryKey: ['barbero', id] });
+      navigate('/admin/equipo');
     },
     onError: (error: any) => {
-      const msg = error.response?.data?.message || 'Error al crear barbero';
+      const msg = error.response?.data?.message || 'Error al actualizar';
       toast.error(msg);
     }
   });
@@ -46,11 +77,15 @@ export const AdminCreateBarber = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = { ...form, horarios };
-    createMutation.mutate(payload);
+    
+    // Limpiamos el payload: Si la contraseña está vacía, la quitamos para no enviarla
+    const payload: any = { ...form, horarios };
+    if (!payload.password) delete payload.password;
+
+    updateMutation.mutate(payload);
   };
 
-  // --- LÓGICA PARA ETIQUETA DE AGENDA ---
+  // --- LÓGICA VISUAL ---
   const agendaLabel = useMemo(() => {
     if (horarios.length === 0) return 'Sin definir';
     const hasManana = horarios.some(h => parseInt(h.horaInicio) < 15);
@@ -61,7 +96,10 @@ export const AdminCreateBarber = () => {
     return 'Personalizada';
   }, [horarios]);
 
-  const sexoMap: Record<string, string> = { 'M': 'Masculino', 'F': 'Femenino', 'X': 'Otro' };
+  // Renderizado de carga
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-blue-600" size={40} /></div>;
+  if (isError) return <div className="min-h-screen flex items-center justify-center text-red-500">Error al cargar barbero</div>;
+
   const labelClass = "block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1";
   const inputContainer = "relative group";
   const iconClass = "absolute left-3 top-3.5 text-slate-400 group-focus-within:text-blue-500 transition-colors pointer-events-none";
@@ -77,12 +115,12 @@ export const AdminCreateBarber = () => {
                 <button 
                     onClick={() => navigate(-1)} 
                     className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"
-                    title="Volver atrás"
                 >
                     <ArrowLeft size={24} />
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Alta de Profesional</h1>
+                    <h1 className="text-2xl font-bold text-slate-900">Editar Profesional</h1>
+                    <p className="text-xs text-slate-500">Actualiza la información del barbero.</p>
                 </div>
             </div>
         </div>
@@ -93,20 +131,19 @@ export const AdminCreateBarber = () => {
         
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            {/* --- COLUMNA IZQUIERDA (FORMULARIO) --- */}
+            {/* --- COLUMNA IZQUIERDA --- */}
             <div className="lg:col-span-8">
-                
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     
-                    {/* 1. CREDENCIALES */}
+                    {/* CREDENCIALES */}
                     <div className="p-8">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
                                 <ShieldCheck size={20} />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-slate-800">Credenciales de Acceso</h2>
-                                <p className="text-xs text-slate-400">Datos de sistema.</p>
+                                <h2 className="text-lg font-bold text-slate-800">Credenciales</h2>
+                                <p className="text-xs text-slate-400">Datos de acceso.</p>
                             </div>
                         </div>
 
@@ -116,7 +153,7 @@ export const AdminCreateBarber = () => {
                                 <div className={inputContainer}>
                                     <User className={iconClass} size={18} />
                                     <input required type="text" name="fullname" value={form.fullname} onChange={handleChange}
-                                        className={inputClass} placeholder="Ej: Juan Pérez"
+                                        className={inputClass}
                                     />
                                 </div>
                             </div>
@@ -125,25 +162,26 @@ export const AdminCreateBarber = () => {
                                 <div className={inputContainer}>
                                     <Mail className={iconClass} size={18} />
                                     <input required type="email" name="email" value={form.email} onChange={handleChange}
-                                        className={inputClass} placeholder="juan@seneca.com"
+                                        className={inputClass}
                                     />
                                 </div>
                             </div>
                             <div className="md:col-span-2">
-                                <label className={labelClass}>Contraseña Temporal</label>
+                                <label className={labelClass}>Nueva Contraseña</label>
                                 <div className={inputContainer}>
                                     <Lock className={iconClass} size={18} />
-                                    <input required type="password" name="password" minLength={6} value={form.password} onChange={handleChange}
-                                        className={inputClass} placeholder="Mínimo 6 caracteres"
+                                    <input type="password" name="password" minLength={6} value={form.password} onChange={handleChange}
+                                        className={inputClass} placeholder="Dejar vacía para mantener la actual"
                                     />
                                 </div>
+                                <p className="text-[10px] text-slate-400 mt-2 ml-1">* Solo llenar si deseas cambiar la contraseña del usuario.</p>
                             </div>
                         </div>
                     </div>
 
                     <div className="h-px bg-slate-100 mx-8"></div>
 
-                    {/* 2. FICHA PERSONAL */}
+                    {/* FICHA PERSONAL */}
                     <div className="p-8 bg-slate-50/20">
                         <div className="flex items-center gap-3 mb-6">
                              <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
@@ -151,17 +189,16 @@ export const AdminCreateBarber = () => {
                             </div>
                             <div>
                                 <h2 className="text-lg font-bold text-slate-800">Ficha Personal</h2>
-                                <p className="text-xs text-slate-400">Datos legales.</p>
                             </div>
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-6">
                              <div>
-                                <label className={labelClass}>DNI / Identificación</label>
+                                <label className={labelClass}>DNI</label>
                                 <div className={inputContainer}>
                                     <Hash className={iconClass} size={18} />
                                     <input required type="text" name="dni" value={form.dni} onChange={handleChange}
-                                        className={inputClass} placeholder="Sin puntos"
+                                        className={inputClass}
                                     />
                                 </div>
                             </div>
@@ -170,7 +207,7 @@ export const AdminCreateBarber = () => {
                                 <div className={inputContainer}>
                                     <Phone className={iconClass} size={18} />
                                     <input required type="text" name="telefono" value={form.telefono} onChange={handleChange}
-                                        className={inputClass} placeholder="+54 9 ..."
+                                        className={inputClass}
                                     />
                                 </div>
                             </div>
@@ -196,12 +233,21 @@ export const AdminCreateBarber = () => {
                                     </select>
                                 </div>
                             </div>
+                             <div className="md:col-span-2">
+                                <label className={labelClass}>Especialidad</label>
+                                <div className={inputContainer}>
+                                    <Briefcase className={iconClass} size={18} />
+                                    <input type="text" name="especialidad" value={form.especialidad} onChange={handleChange}
+                                        className={inputClass} placeholder="Ej: Especialista en Navaja"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div className="h-px bg-slate-100 mx-8"></div>
 
-                    {/* 3. AGENDA */}
+                    {/* AGENDA */}
                     <div className="p-8">
                         <div className="flex items-center gap-3 mb-6">
                              <div className="w-10 h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center">
@@ -209,61 +255,38 @@ export const AdminCreateBarber = () => {
                             </div>
                             <div>
                                 <h2 className="text-lg font-bold text-slate-800">Agenda Laboral</h2>
-                                <p className="text-xs text-slate-400">Define los turnos de disponibilidad.</p>
+                                <p className="text-xs text-slate-400">Edita los turnos disponibles.</p>
                             </div>
                         </div>
                         
-                        <AgendaSelector onChange={setHorarios} />
+                        {/* ⚠️ IMPORTANTE: Pasamos 'value' para que el componente sepa qué mostrar */}
+                        <AgendaSelector value={horarios} onChange={setHorarios} />
                     </div>
-
                 </div>
             </div>
 
-            {/* --- COLUMNA DERECHA (RESUMEN) --- */}
+            {/* --- COLUMNA DERECHA --- */}
             <div className="lg:col-span-4 space-y-6">
-                
-                {/* TARJETA RESUMEN STICKY */}
                 <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sticky top-24">
-                    <h3 className="font-bold text-slate-800 mb-6 text-sm uppercase tracking-wider border-b border-slate-100 pb-4">Resumen de Alta</h3>
+                    <h3 className="font-bold text-slate-800 mb-6 text-sm uppercase tracking-wider border-b border-slate-100 pb-4">Resumen</h3>
                     
-                    {/* Previsualización Mini */}
                     <div className="flex items-center gap-4 mb-6">
                         <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 shrink-0">
                             <User size={24} />
                         </div>
                         <div className="overflow-hidden">
-                            <p className="font-bold text-slate-900 text-sm truncate">{form.fullname || 'Nuevo Profesional'}</p>
-                            <p className="text-xs text-slate-500 truncate">{form.email || 'email@...'}</p>
+                            <p className="font-bold text-slate-900 text-sm truncate">{form.fullname}</p>
+                            <p className="text-xs text-slate-500 truncate">{form.email}</p>
                         </div>
                     </div>
 
-                    {/* LISTA DE DATOS */}
                     <div className="bg-slate-50 rounded-xl p-4 mb-6 space-y-3 text-xs border border-slate-100">
-                        <div className="flex justify-between items-center">
-                            <span className="text-slate-500 font-medium">DNI</span>
-                            <span className="font-bold text-slate-800">{form.dni || '--'}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-slate-500 font-medium">Teléfono</span>
-                            <span className="font-bold text-slate-800">{form.telefono || '--'}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-slate-500 font-medium">Edad</span>
-                            <span className="font-bold text-slate-800">{form.edad} años</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-slate-500 font-medium">Sexo</span>
-                            <span className="font-bold text-slate-800">{sexoMap[form.sexo]}</span>
-                        </div>
-                        
-                        <div className="h-px bg-slate-200 my-2"></div>
-
-                        <div className="flex justify-between items-center pt-1">
-                            <span className="text-slate-500 font-medium">Agenda</span>
+                         <div className="flex justify-between items-center">
+                            <span className="text-slate-500 font-medium">Agenda Actual</span>
                             <span className={`font-bold text-xs px-2 py-1 rounded-md border
                                 ${horarios.length > 0 
                                     ? 'bg-blue-50 text-blue-700 border-blue-100' 
-                                    : 'bg-slate-100 text-slate-400 border-slate-200'}
+                                    : 'bg-red-50 text-red-500 border-red-100'}
                             `}>
                                 {agendaLabel}
                             </span>
@@ -272,23 +295,21 @@ export const AdminCreateBarber = () => {
 
                     <button 
                         type="submit" 
-                        disabled={createMutation.isPending}
-                        className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-slate-900/20 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed group"
+                        disabled={updateMutation.isPending}
+                        className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-slate-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
                     >
-                        {createMutation.isPending ? 'Procesando...' : <><Save size={18} className="group-hover:scale-110 transition-transform"/> Confirmar Alta</>}
+                        {updateMutation.isPending ? 'Guardando...' : <><Save size={18}/> Guardar Cambios</>}
                     </button>
                     
                     <button 
                         type="button" 
                         onClick={() => navigate(-1)}
-                        className="w-full mt-3 py-2.5 text-slate-400 font-bold text-xs hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                        className="w-full mt-3 py-2.5 text-slate-400 font-bold text-xs hover:text-red-500 transition-colors"
                     >
-                        Cancelar operación
+                        Cancelar
                     </button>
                 </div>
-
             </div>
-
         </form>
       </div>
     </div>

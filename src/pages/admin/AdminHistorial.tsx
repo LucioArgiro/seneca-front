@@ -69,7 +69,7 @@ const AdminHistorial = () => {
                             <td className="p-4 font-bold text-slate-700">{new Date(t.fecha).toLocaleDateString()}</td>
                             <td className="p-4 text-slate-600">{t.servicio?.nombre}</td>
                             <td className="p-4 text-blue-600 font-medium">
-                                {t.barbero?.usuario?.fullname || 'Sin asignar'}
+                                {t.barbero?.usuario?.nombre || 'Sin asignar'}
                             </td>
                             <td className="p-4 text-right font-mono font-bold text-slate-700">
                                 {t.estado === 'COMPLETADO' ? `$${t.servicio?.precio}` : '-'}

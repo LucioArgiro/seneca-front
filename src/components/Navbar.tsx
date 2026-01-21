@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Scissors, Menu, X, User, LogOut } from "lucide-react"; // Agregamos iconos nuevos
-import { useAuthStore } from "../store/auth"; // <--- 1. Importamos el store
+import { Scissors, Menu, X, User, LogOut } from "lucide-react"; 
+import { useAuthStore } from "../store/auth"; 
+
 
 export const Navbar = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   
   // 2. Extraemos el usuario y la función logout del estado global
-  const { user, isAuth, logout } = useAuthStore(); 
+  const { usuario, isAuth, logout } = useAuthStore(); 
 
   const closeMenu = () => setIsOpen(false);
 
@@ -37,7 +38,8 @@ export const Navbar = () => {
           <a href="/#inicio" className="hover:text-blue-600 transition">Inicio</a>
           <a href="/#servicios" className="hover:text-blue-600 transition">Servicios</a>
           <a href="/#barberos" className="hover:text-blue-600 transition">Equipo</a>
-          <a href="/#barberos" className="hover:text-blue-600 transition">Contacto</a>
+          <a href="/contacto" className="hover:text-blue-600 transition">Contacto</a>
+          <a href="/turnos" className="hover:text-blue-600 transition">Turnos</a>
         </div>
 
         {/* ZONA DE USUARIO / ACCIONES */}
@@ -48,7 +50,7 @@ export const Navbar = () => {
               // --- SI ESTÁ LOGUEADO ---
               <div className="flex items-center gap-4">
                 <span className="hidden md:block text-sm font-bold text-slate-700">
-                  Hola, {user?.fullname?.split(' ')[0]} {/* Muestra solo el primer nombre */}
+                  Hola, {usuario?.nombre?.split(' ')[0]} {/* Muestra solo el primer nombre */}
                 </span>
                 
                 <button 
@@ -86,7 +88,7 @@ export const Navbar = () => {
           {/* Si está logueado, mostramos su nombre arriba en el menú móvil */}
           {isAuth && (
             <div className="p-4 bg-slate-50 border-b border-slate-100 text-center font-bold text-slate-700">
-               👤 {user?.fullname}
+               👤 {usuario?.nombre} {usuario?.apellido}
             </div>
           )}
 

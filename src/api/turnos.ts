@@ -1,71 +1,99 @@
 import api from './axios';
 
+// DTO para crear
 export interface CreateTurnoDto {
   fecha: string;
   barberoId: string;
   servicioId: string;
 }
 
+// RESPUESTA LIMPIA
 export interface TurnoResponse {
   id: string;
   fecha: string;
+  fechaFin: string; // Importante para la agenda visual
   estado: 'PENDIENTE' | 'CONFIRMADO' | 'COMPLETADO' | 'CANCELADO';
-  servicio?: {
+
+  servicio: {
     id: string;
     nombre: string;
     precio: number;
-    duracionMinutos?: number;
+    duracionMinutos: number;
   };
-  cliente?: {
+
+  cliente: {
     id: string;
-    usuario?: { 
-        fullname: string;
-        email?: string;
+    usuario: {
+      nombre: string;   // 👈 Corregido
+      apellido: string; // 👈 Corregido
+      email: string;
+      telefono?: string;
     }
   };
-  barbero?: {
+
+  barbero: {
     id: string;
-    usuario?: {
-        fullname: string;
+    usuario: {
+      nombre: string;   // 👈 Corregido
+      apellido: string; // 👈 Corregido
     }
   };
 }
-export const createTurno = async (data: CreateTurnoDto) => {
-  const response = await api.post('/turnos', data);
-  return response.data;
-};
-export const getMyTurnos = async () => {
-  const { data } = await api.get<TurnoResponse[]>('/turnos/mis-turnos');
-  return data;
-};
-
-export const cancelarTurnoCliente = async (id: string) => {
-  const { data } = await api.patch(`/turnos/${id}/cancelar`);
-  return data;
-};
 
 export const turnosApi = {
-  getAgenda: async () => {
-    const { data } = await api.get<TurnoResponse[]>('/turnos/agenda');
+  // 1. Traer turnos (acepta filtro de fecha)
+  getTurnos: async (fecha?: string): Promise<TurnoResponse[]> => {
+    const url = fecha ? `/turnos?fecha=${fecha}` : '/turnos';
+    const { data } = await api.get(url);
     return data;
   },
 
-  getHistorial: async () => {
-    const { data } = await api.get<TurnoResponse[]>('/turnos/historial-clientes');
+  // 2. Crear Turno
+  createTurno: async (data: CreateTurnoDto): Promise<TurnoResponse> => {
+    const { data: response } = await api.post('/turnos', data);
+    return response;
+  },
+
+  // 3. Mis Turnos
+  getMyTurnos: async (): Promise<TurnoResponse[]> => {
+    const { data } = await api.get('/turnos/mis-turnos');
     return data;
   },
-  updateEstado: async (id: string, estado: 'CONFIRMADO' | 'CANCELADO' | 'COMPLETADO') => {
-      const { data } = await api.patch<TurnoResponse>(`/turnos/${id}/estado`, { estado });
-      return data;
+
+  // 4. Agenda del Barbero
+  getAgendaBarbero: async (): Promise<TurnoResponse[]> => {
+    const { data } = await api.get('/turnos/agenda');
+    return data;
+  },
+
+  // 5. Historial
+  getHistorial: async (): Promise<TurnoResponse[]> => {
+    const { data } = await api.get('/turnos/historial-clientes');
+    return data;
+  },
+
+  // 6. Cancelar
+  cancelarTurno: async (id: string): Promise<void> => {
+    await api.patch(`/turnos/${id}/cancelar`);
+  },
+
+  // 7. Update Estado
+  updateEstado: async (id: string, estado: 'CONFIRMADO' | 'CANCELADO' | 'COMPLETADO'): Promise<TurnoResponse> => {
+    const { data } = await api.patch(`/turnos/${id}/estado`, { estado });
+    return data;
+  },
+
+  // 8. Reprogramar
+  reprogramarTurno: async (id: string, nuevaFecha: string): Promise<TurnoResponse> => {
+    const { data } = await api.patch(`/turnos/${id}/reprogramar`, { nuevaFecha });
+    return data;
+  },
+
+  // 9. Disponibilidad
+  getHorariosOcupados: async (fecha: string, barberoId: string): Promise<string[]> => {
+    const { data } = await api.get('/disponibilidad/ocupados', {
+      params: { fecha, barberoId }
+    });
+    return data;
   }
-};
-
-export const updateEstadoTurno = async (id: string, estado: 'CONFIRMADO' | 'CANCELADO' | 'COMPLETADO') => {
-  const { data } = await api.patch<TurnoResponse>(`/turnos/${id}/estado`, { estado });
-  return data;
-};
-
-export const getTurnos = async () => {
-  const { data } = await api.get<TurnoResponse[]>('/turnos');
-  return data;
 };

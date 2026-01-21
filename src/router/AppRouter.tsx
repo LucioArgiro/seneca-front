@@ -1,87 +1,79 @@
 import { type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "../store/auth";
-import AdminLayout  from "../layout/AdminLayout"; 
-import { BarberLayout } from "../layout/BarberLayout"; 
+import AdminLayout from "../layout/AdminLayout";
+import { BarberLayout } from "../layout/BarberLayout";
 import Login from "../pages/Login";
 import Register from '../pages/Register';
 import Landing from '../pages/Landing';
-import BarberProfile from "../pages/barber/BarberProfile"; 
-import ClientDashboard from "../pages/ClientDashboard"; 
+import BarberProfile from "../pages/barber/BarberProfile";
+import BarberSettings from "../pages/barber/BarberSettings";
+import ClientDashboard from "../pages/client/ClientDashboard";
 import BarberAgenda from "../pages/barber/BarberAgenda";
-import BarberHistory from "../pages/barber/BarberHistory"; 
+import BarberHistory from "../pages/barber/BarberHistory";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminServicios from "../pages/admin/AdminServicios";
-import {AdminCreateBarber} from "../pages/admin/AdminCreateBarber";
+/* import AdminAgenda from "../pages/admin/AdminAgenda"; */
+import AdminHistorial from "../pages/admin/AdminHistorial";
+import { AdminEquipo } from "../pages/admin/AdminEquipo";
+import Contacto from '../pages/Contacto';
+import AdminMensajes from '../pages/admin/AdminMensajes';
+import { ReservarTurno } from '../pages/client/ReservarTurno';
+import { AdminCreateBarber } from '../pages/admin/AdminCreateBarber';
+import { AdminEditBarber } from '../pages/admin/AdminEditBarber';
+import { AdminAgendaGlobal } from '../pages/admin/AdminAgendaGlobal';
 
 interface ProtectedRouteProps {
-  children: ReactNode;
-  allowedRoles: string[];
+    children: ReactNode;
+    allowedRoles: string[];
 }
 
 const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const { isAuth, user } = useAuthStore();
+    const { isAuth, usuario } = useAuthStore();
 
-  // 1. Si no está autenticado -> Login
-  if (!isAuth) return <Navigate to="/login" replace />;
+    if (!isAuth) return <Navigate to="/login" replace />;
 
-  // 2. Si el rol no está permitido -> Redirigir a su "Home" correspondiente
-  if (user && !allowedRoles.includes(user.role)) {
-    if (user.role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
-    if (user.role === 'BARBER') return <Navigate to="/barber/agenda" replace />;
-    return <Navigate to="/turnos" replace />; // Cliente
-  }
+    if (usuario && !allowedRoles.includes(usuario.role)) {
+        if (usuario.role === 'ADMIN') return <Navigate to="/admin/agenda" replace />; // Cambiado a agenda
+        if (usuario.role === 'BARBER') return <Navigate to="/barber/agenda" replace />;
+        return <Navigate to="/turnos" replace />;
+    }
 
-  return <>{children}</>;
+    return <>{children}</>;
 };
 
-// Función auxiliar para redirigir si ya está logueado
 const getHomeRoute = (role?: string) => {
-  switch (role) {
-    case 'ADMIN': return '/admin/dashboard';
-    case 'BARBER': return '/barber/agenda';
-    default: return '/turnos';
-  }
+    switch (role) {
+        case 'ADMIN': return '/admin/agenda'; // Cambiado a agenda
+        case 'BARBER': return '/barber/agenda';
+        default: return '/turnos';
+    }
 };
 
 export default function AppRouter() {
-    const { isAuth, user } = useAuthStore();
+    const { isAuth, usuario } = useAuthStore();
 
     return (
         <BrowserRouter>
             <Routes>
-                
-                {/* =========================================
-                    1. RUTAS PÚBLICAS (Cualquiera entra)
-                   ========================================= */}
+                {/* RUTAS PÚBLICAS */}
                 <Route path="/" element={<Landing />} />
-                
-                <Route path="/login" element={
-                    !isAuth ? <Login /> : <Navigate to={getHomeRoute(user?.role)} />
-                } />
-                
-                <Route path="/register" element={
-                    !isAuth ? <Register /> : <Navigate to={getHomeRoute(user?.role)} />
-                } />
-
-                {/* Perfil público del barbero (para que el cliente reserve) */}
+                <Route path="/login" element={!isAuth ? <Login /> : <Navigate to={getHomeRoute(usuario?.role)} />} />
+                <Route path="/register" element={!isAuth ? <Register /> : <Navigate to={getHomeRoute(usuario?.role)} />} />
                 <Route path="/barberos/:id" element={<BarberProfile />} />
+                <Route path='/contacto' element={<Contacto />} />
 
-
-                {/* =========================================
-                    2. RUTAS DE CLIENTE (Solo Clientes)
-                   ========================================= */}
+                {/* RUTAS CLIENTE */}
                 <Route path="/turnos" element={
                     <ProtectedRoute allowedRoles={['CLIENT']}>
-                         {/* Si tienes un MainLayout, envuélvelo aquí */}
                         <ClientDashboard />
                     </ProtectedRoute>
+
                 } />
+                <Route path="/reservar" element={<ReservarTurno />} />
 
 
-                {/* =========================================
-                    3. RUTAS DE BARBERO (Solo Empleados)
-                   ========================================= */}
+                {/* RUTAS BARBERO */}
                 <Route path="/barber" element={
                     <ProtectedRoute allowedRoles={['BARBER']}>
                         <BarberLayout />
@@ -90,32 +82,29 @@ export default function AppRouter() {
                     <Route index element={<Navigate to="agenda" replace />} />
                     <Route path="agenda" element={<BarberAgenda />} />
                     <Route path="historial" element={<BarberHistory />} />
+                    <Route path="perfil" element={<BarberSettings />} />
+                    <Route path='mensajes' element={<AdminMensajes />} />
                 </Route>
 
-
-                {/* =========================================
-                    4. RUTAS DE ADMIN (Dueño / Superusuario)
-                   ========================================= */}
-                <Route path="/admin" element={
-                    <ProtectedRoute allowedRoles={['ADMIN']}>
-                        <AdminLayout />
-                    </ProtectedRoute>
-                }>
-                    <Route index element={<Navigate to="dashboard" replace />} />
+                {/* RUTAS ADMIN */}
+                <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']}> <AdminLayout /></ProtectedRoute>}>
+                    <Route index element={<Navigate to="agenda" replace />} />
+                    {/* <Route path="agenda" element={<AdminAgenda />} /> */}
+                    <Route path="historial" element={<AdminHistorial />} />
+                    <Route path="equipo" element={<AdminEquipo />} />
+                    <Route path="/admin/equipo/nuevo" element={<AdminCreateBarber />} />
+                    <Route path="/admin/equipo/editar/:id" element={<AdminEditBarber />} />
+                    <Route path="/admin/agenda" element={<AdminAgendaGlobal />} />
                     <Route path="dashboard" element={<AdminDashboard />} />
                     <Route path="servicios" element={<AdminServicios />} />
-                    <Route path="crear-barbero" element={<AdminCreateBarber />} />
-                    {/* <Route path="metricas" element={<AdminMetricas />} /> */}
+                    <Route path='mensajes' element={<AdminMensajes />} />
                 </Route>
 
-
-                {/* =========================================
-                    5. RUTAS "CATCH-ALL" (404)
-                   ========================================= */}
+                {/* 404 */}
                 <Route path="*" element={
-                    !isAuth 
-                        ? <Navigate to="/login" /> 
-                        : <Navigate to={getHomeRoute(user?.role)} />
+                    !isAuth
+                        ? <Navigate to="/login" />
+                        : <Navigate to={getHomeRoute(usuario?.role)} />
                 } />
 
             </Routes>
