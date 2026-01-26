@@ -13,7 +13,14 @@ export interface TurnoResponse {
   fecha: string;
   fechaFin: string; // Importante para la agenda visual
   estado: 'PENDIENTE' | 'CONFIRMADO' | 'COMPLETADO' | 'CANCELADO';
-
+ 
+  pago?: {
+    id: string;
+    estado: 'pending' | 'approved' | 'rejected';
+    monto: number;
+    tipo: 'SENIA' | 'TOTAL';
+  };
+  
   servicio: {
     id: string;
     nombre: string;
@@ -95,5 +102,11 @@ export const turnosApi = {
       params: { fecha, barberoId }
     });
     return data;
+  },
+
+  crearPreferenciaPago: async (id: string, tipoPago: 'SENIA' | 'TOTAL'): Promise<{ url: string }> => {
+    const { data } = await api.post(`/turnos/${id}/preferencia`, { tipoPago });
+    return data;
   }
+
 };

@@ -24,6 +24,7 @@ export interface BarberoPerfil {
     id: string;
     // Datos propios del barbero
     biografia?: string;
+    precioSenia?: number;
     especialidad?: string;
     provincia?: string;
     pais?: string;
@@ -64,6 +65,7 @@ export interface CreateBarberoDto {
 export interface UpdateBarberoDto {
     biografia?: string;
     especialidad?: string;
+    precioSenia?: number;
     provincia?: string;
     pais?: string;
     fotoUrl?: string;
