@@ -5,27 +5,41 @@ import { agendaApi, type CreateBloqueoPayload } from '../api/agenda';
 import { toast } from 'react-hot-toast';
 import dayjs from 'dayjs';
 
-export const useAgendaData = (selectedDate: dayjs.Dayjs) => {
+// 👇 AGREGAMOS barberoId OPCIONAL AQUÍ
+export const useAgendaData = (selectedDate: dayjs.Dayjs, barberoId?: string) => {
     const queryClient = useQueryClient();
     const fechaFormatAPI = selectedDate.format('YYYY-MM-DD');
+    const startOfDay = selectedDate.startOf('day').toISOString();
+    const endOfDay = selectedDate.endOf('day').toISOString();
 
-    // QUERIES
-    const { data: barberos = [], isLoading } = useQuery({ 
+    // 1. BARBEROS
+    const { data: barberos = [], isLoading: isLoadingBarberos } = useQuery({ 
         queryKey: ['barberos'], 
-        queryFn: barberosApi.getAll 
+        queryFn: barberosApi.getAll,
+        staleTime: 1000 * 60 * 60, 
     });
     
-    const { data: turnos = [] } = useQuery({ 
-        queryKey: ['turnos', fechaFormatAPI], 
-        queryFn: () => turnosApi.getTurnos(fechaFormatAPI) 
+    // 2. TURNOS (Ahora enviamos barberoId si existe)
+    const { data: turnos = [], isLoading: isLoadingTurnos } = useQuery({ 
+        // 👇 Agregamos barberoId a la key para que cachee por separado
+        queryKey: ['turnos', fechaFormatAPI, barberoId], 
+        queryFn: async () => {
+            return await turnosApi.getTurnos({ 
+                desde: startOfDay, 
+                hasta: endOfDay,
+                barberoId: barberoId // 👈 SE ENVÍA AL BACKEND
+            });
+        }
     });
     
-    const { data: bloqueos = [] } = useQuery({ 
-        queryKey: ['bloqueos', fechaFormatAPI], 
+    // 3. BLOQUEOS
+    const { data: bloqueos = [], isLoading: isLoadingBloqueos } = useQuery({ 
+        queryKey: ['bloqueos', fechaFormatAPI, barberoId], 
         queryFn: () => agendaApi.getBloqueos(fechaFormatAPI) 
+        // Nota: Idealmente tu API de bloqueos también debería filtrar por barberoId si es necesario
     });
 
-    // MUTATIONS
+    // ... (Mutations createBloqueo y deleteBloqueo quedan igual) ...
     const createBloqueo = useMutation({
         mutationFn: (payload: CreateBloqueoPayload) => agendaApi.bloquearFecha(payload),
         onSuccess: () => {
@@ -47,8 +61,8 @@ export const useAgendaData = (selectedDate: dayjs.Dayjs) => {
         barberos,
         turnos,
         bloqueos,
-        isLoading,
-        createBloqueo, // Retornamos la mutación completa
+        isLoading: isLoadingBarberos || isLoadingTurnos || isLoadingBloqueos,
+        createBloqueo,
         deleteBloqueo
     };
 };

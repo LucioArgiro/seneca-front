@@ -19,6 +19,7 @@ export const AgendaSelector = ({ value = [], onChange }: AgendaSelectorProps) =>
     manana: false,
     tarde: false
   });
+
   useEffect(() => {
     if (value && value.length > 0) {
       const hasManana = value.some(h => parseInt(h.horaInicio) < 14);
@@ -31,6 +32,7 @@ export const AgendaSelector = ({ value = [], onChange }: AgendaSelectorProps) =>
       });
     }
   }, [value]);
+
   useEffect(() => {
     const nuevosHorarios: HorarioInput[] = [];
 
@@ -52,12 +54,12 @@ export const AgendaSelector = ({ value = [], onChange }: AgendaSelectorProps) =>
   };
 
   return (
-    <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
-      <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+    // FONDO: Carbón (#1A1A1A) para destacar sobre el fondo general
+    <div className="bg-[#1A1A1A] p-5 rounded-2xl border border-white/5 shadow-xl">
+      <h3 className="text-xs font-bold text-[#C9A227] uppercase tracking-[0.2em] mb-4 flex items-center gap-2 opacity-90">
         <CalendarDays size={14} /> Jornada Laboral (Lun - Sáb)
       </h3>
 
-      {/* 👇 CAMBIO CLAVE: Usamos flex-col con gap vertical para apilarlas */}
       <div className="flex flex-col gap-3">
 
         {/* OPCIÓN 1: MAÑANA */}
@@ -65,36 +67,38 @@ export const AgendaSelector = ({ value = [], onChange }: AgendaSelectorProps) =>
           type="button"
           onClick={() => toggleTurno('manana')}
           className={`
-            relative w-full p-4 rounded-xl border transition-all duration-200 flex items-center gap-4 text-left group
+            relative w-full p-4 rounded-xl border transition-all duration-300 flex items-center gap-4 text-left group
             ${turnosActivos.manana
-              ? 'bg-white border-orange-400 shadow-md shadow-orange-500/10'
-              : 'bg-white border-slate-200 hover:border-orange-200'}
+              ? 'bg-[#C9A227]/5 border-[#C9A227] shadow-[0_0_15px_rgba(201,162,39,0.1)]' // Activo: Brillo Dorado
+              : 'bg-[#131313] border-zinc-800 hover:border-[#C9A227]/30 hover:bg-[#131313]/80'} // Inactivo: Oscuro
           `}
         >
           {/* Icono con fondo */}
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-colors
-            ${turnosActivos.manana ? 'bg-orange-50 text-orange-500' : 'bg-slate-100 text-slate-400 group-hover:bg-orange-50 group-hover:text-orange-400'}
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors
+            ${turnosActivos.manana 
+                ? 'bg-[#C9A227]/20 text-[#C9A227]' 
+                : 'bg-zinc-800 text-zinc-500 group-hover:text-[#C9A227]'}
           `}>
             <Sun size={24} />
           </div>
 
           {/* Textos */}
           <div className="flex-1">
-            <span className={`block font-bold text-sm ${turnosActivos.manana ? 'text-slate-800' : 'text-slate-500'}`}>
+            <span className={`block font-bold text-sm ${turnosActivos.manana ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'}`}>
               Turno Mañana
             </span>
-            <div className="flex items-center gap-1.5 mt-0.5 text-xs font-medium text-slate-400">
+            <div className={`flex items-center gap-1.5 mt-0.5 text-xs font-medium ${turnosActivos.manana ? 'text-[#C9A227]' : 'text-zinc-500'}`}>
               <Clock size={12} /> 09:00 - 14:00
             </div>
           </div>
 
           {/* Checkbox Visual */}
-          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all
+          <div className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all
             ${turnosActivos.manana
-              ? 'bg-orange-500 border-orange-500'
-              : 'border-slate-200 bg-slate-50'}
+              ? 'bg-[#C9A227] border-[#C9A227] text-[#131313]'
+              : 'border-zinc-700 bg-zinc-800'}
           `}>
-            {turnosActivos.manana && <CheckCircle2 size={14} className="text-white" />}
+            {turnosActivos.manana && <CheckCircle2 size={14} />}
           </div>
         </button>
 
@@ -103,33 +107,35 @@ export const AgendaSelector = ({ value = [], onChange }: AgendaSelectorProps) =>
           type="button"
           onClick={() => toggleTurno('tarde')}
           className={`
-            relative w-full p-4 rounded-xl border transition-all duration-200 flex items-center gap-4 text-left group
+            relative w-full p-4 rounded-xl border transition-all duration-300 flex items-center gap-4 text-left group
             ${turnosActivos.tarde
-              ? 'bg-white border-indigo-500 shadow-md shadow-indigo-500/10'
-              : 'bg-white border-slate-200 hover:border-indigo-200'}
+              ? 'bg-[#C9A227]/5 border-[#C9A227] shadow-[0_0_15px_rgba(201,162,39,0.1)]'
+              : 'bg-[#131313] border-zinc-800 hover:border-[#C9A227]/30 hover:bg-[#131313]/80'}
           `}
         >
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-colors
-            ${turnosActivos.tarde ? 'bg-indigo-50 text-indigo-500' : 'bg-slate-100 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-400'}
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors
+            ${turnosActivos.tarde 
+                ? 'bg-[#C9A227]/20 text-[#C9A227]' 
+                : 'bg-zinc-800 text-zinc-500 group-hover:text-[#C9A227]'}
           `}>
             <Moon size={24} />
           </div>
 
           <div className="flex-1">
-            <span className={`block font-bold text-sm ${turnosActivos.tarde ? 'text-slate-800' : 'text-slate-500'}`}>
+            <span className={`block font-bold text-sm ${turnosActivos.tarde ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'}`}>
               Turno Tarde
             </span>
-            <div className="flex items-center gap-1.5 mt-0.5 text-xs font-medium text-slate-400">
+            <div className={`flex items-center gap-1.5 mt-0.5 text-xs font-medium ${turnosActivos.tarde ? 'text-[#C9A227]' : 'text-zinc-500'}`}>
               <Clock size={12} /> 17:00 - 22:00
             </div>
           </div>
 
-          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all
+          <div className={`w-6 h-6 rounded-full border flex items-center justify-center transition-all
             ${turnosActivos.tarde
-              ? 'bg-indigo-500 border-indigo-500'
-              : 'border-slate-200 bg-slate-50'}
+              ? 'bg-[#C9A227] border-[#C9A227] text-[#131313]'
+              : 'border-zinc-700 bg-zinc-800'}
           `}>
-            {turnosActivos.tarde && <CheckCircle2 size={14} className="text-white" />}
+            {turnosActivos.tarde && <CheckCircle2 size={14} />}
           </div>
         </button>
       </div>

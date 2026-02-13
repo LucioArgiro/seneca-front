@@ -1,38 +1,35 @@
 import { useNavigate } from "react-router-dom";
 
 export const Hero = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    return (
-        <section id="inicio" className="relative h-[600px] flex items-center justify-center">
-            {/* IMAGEN DE FONDO */}
-            <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: "url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?q=80&w=2074&auto=format&fit=crop')" }}
-            ></div>
-            {/* Capa Oscura */}
-            <div className="absolute inset-0 bg-black/60"></div>
-            {/* CONTENIDO TEXTO */}
-            <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
-                <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">Estilo Clásico,
-                    <span className="text-blue-400">Corte Moderno</span>
-                </h1>
-                <p className="text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
-                    Descubre la experiencia definitiva en cuidado masculino.
-                    Reserva tu cita con los mejores profesionales de la ciudad.
-                </p>
-                <div className="flex gap-4 justify-center">
-                    <button onClick={() => navigate('/login')} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-bold transition">
-                        Reservar Ahora
-                    </button>
-                    <a
-                        href="#servicios"
-                        className="border border-white hover:bg-white hover:text-black text-white px-8 py-3 rounded font-bold text-lg transition inline-block"
-                    >
-                        Ver Servicios
-                    </a>
-                </div>
-            </div>
-        </section>
-    );
+  return (
+    <section id="inicio" className="relative h-[50vh] min-h-[400px] md:h-[700px] flex items-end justify-center pb-12 md:pb-20 overflow-hidden">
+      
+      {/* 1. IMAGEN DE FONDO */}
+      {/* Le agregamos una animación sutil de zoom-out para que la imagen "respire" al cargar */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat" 
+        style={{backgroundImage: "url('https://res.cloudinary.com/dn9k3xvji/image/upload/v1770747163/lucio_t3qzkn.png')"}}
+        data-aos="zoom-out"
+        data-aos-duration="2000" // Animación lenta de fondo (2 segundos)
+      ></div>
+
+      {/* Degradado opcional para mejorar lectura de botones si la imagen es clara */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+
+      {/* 3. CONTENIDO (Botones) */}
+      <div className="relative z-10 w-full max-w-4xl px-4 flex flex-col items-center">
+        <div className="flex flex-row gap-3 md:gap-8 items-center justify-center w-full max-w-lg md:max-w-none">
+          
+          {/* BOTÓN 1: RESERVAR (Principal) */}
+          <button onClick={() => navigate('/login')} className="flex-1 md:flex-none md:w-auto bg-[#C9A227] text-[#131313] border border-[#C9A227] hover:bg-[#131313] hover:text-[#C9A227] px-2 py-3 md:px-8 md:py-4 rounded-xl font-black uppercase tracking-widest transition-all duration-300 transform hover:-translate-y-1 text-[11px] xs:text-xs md:text-base whitespace-nowrap" data-aos="fade-right" data-aos-delay="1000" data-aos-duration="1000">Reservar Ahora</button>
+
+          {/* BOTÓN 2: CONTACTO (Secundario) */}
+          <button onClick={() => navigate('/Contacto')} className="flex-1 md:flex-none md:w-auto bg-[#131313] text-[#C9A227] border border-[#C9A227] hover:text-[#131313] hover:bg-[#C9A227] px-2 py-3 md:px-8 md:py-4 rounded-xl font-bold uppercase tracking-widest transition-all duration-300 text-[11px] xs:text-xs md:text-base whitespace-nowrap" data-aos="fade-left" data-aos-delay="800" data-aos-duration="1000">Contactanos</button>
+
+        </div>
+      </div>
+    </section>
+  );
 };

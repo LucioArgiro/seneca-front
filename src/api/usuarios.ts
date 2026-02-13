@@ -1,5 +1,5 @@
 import api from './axios';
-import type { Usuario } from '../types'; // 👈 Importamos, no redefinimos
+import type { Usuario } from '../types';
 
 export const usuariosApi = {
     // Solo para Admin (lista general de usuarios sin perfil detallado)

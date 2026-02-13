@@ -1,108 +1,156 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Scissors, Menu, X, User, LogOut } from "lucide-react"; 
-import { useAuthStore } from "../store/auth"; 
-
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom"; // 👈 Importamos Link
+import { Scissors, Menu, X, User, LogOut } from "lucide-react";
+import { useAuthStore } from "../store/auth";
+import { useNegocio } from "../hooks/useNegocio";
 
 export const Navbar = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  
-  // 2. Extraemos el usuario y la función logout del estado global
-  const { usuario, isAuth, logout } = useAuthStore(); 
+  const [isScrolled, setIsScrolled] = useState(false);
 
+  const { usuario, isAuth, logout } = useAuthStore();
+  console.log("usuario:", usuario); // 👈 AQUI
+  const { negocio } = useNegocio();
+  const logoUrl = negocio?.logoUrl;
   const closeMenu = () => setIsOpen(false);
 
-  // 3. Función para manejar el cierre de sesión
-  const handleLogout = () => {
-    logout(); // Borra el token
+  const handleLogout = async () => {
+    await logout(); // 👈 Asegúrate de que sea async si el store lo es
     closeMenu();
-    navigate('/login'); // Te manda al login
+    navigate('/login');
   };
 
+  const NAV_LINKS = [
+    { name: 'Inicio', path: '/', isHash: true },
+    { name: 'Contacto', path: '/contacto', isHash: false },
+    { name: 'Turnos', path: '/turnos', isHash: false }
+  ];
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="flex justify-between items-center px-8 py-4">
-        
-        {/* LOGO (Clic te lleva al inicio) */}
-        <div 
-          onClick={() => navigate('/')} 
-          className="flex items-center gap-2 font-bold text-xl text-slate-800 cursor-pointer"
-        >
-          <Scissors className="text-blue-600" />
-          <span>Séneca</span>
+    <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${isScrolled || isOpen ? "bg-[#131313] shadow-2xl py-5" : "bg-transparent py-5"}`}>
+      <div className="flex justify-between items-center px-6 md:px-8">
+
+        {/* --- LOGO PRINCIPAL --- */}
+        <div onClick={() => navigate('/')} className="flex items-center gap-3 cursor-pointer group">
+          {logoUrl ? (
+            <img src={logoUrl} alt="Logo" className="w-auto h-12 object-contain" />
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="bg-[#C9A227]/10 p-2 rounded-lg group-hover:bg-[#C9A227]/20 transition-colors">
+                <Scissors className="text-[#C9A227]" size={22} />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-white font-black tracking-widest text-lg leading-none">SÉNECA</span>
+                <span className="text-[#C9A227] text-[10px] tracking-[0.3em] font-medium">BARBERÍA</span>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* LINKS CENTRALES (Solo si NO estás logueado o si quieres que se vean siempre) */}
-        <div className="hidden md:flex gap-6 font-medium text-gray-600">
-          <a href="/#inicio" className="hover:text-blue-600 transition">Inicio</a>
-          <a href="/#servicios" className="hover:text-blue-600 transition">Servicios</a>
-          <a href="/#barberos" className="hover:text-blue-600 transition">Equipo</a>
-          <a href="/contacto" className="hover:text-blue-600 transition">Contacto</a>
-          <a href="/turnos" className="hover:text-blue-600 transition">Turnos</a>
-        </div>
+        {/* --- DESKTOP LINKS --- */}
+        <div className="hidden md:flex items-center gap-8">
+          <div className="flex gap-8 font-medium text-white/80">
+            {NAV_LINKS.map((item) => (
+              <Link
+                key={item.name}
+                to={item.path}
+                className="hover:text-[#C9A227] transition-all text-xs uppercase tracking-widest hover:scale-105"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
 
-        {/* ZONA DE USUARIO / ACCIONES */}
-        <div className="flex items-center gap-4">
-            
-            {/* 4. RENDERIZADO CONDICIONAL */}
+          <div className="flex items-center gap-4 border-l border-white/10 pl-6">
             {isAuth ? (
-              // --- SI ESTÁ LOGUEADO ---
               <div className="flex items-center gap-4">
-                <span className="hidden md:block text-sm font-bold text-slate-700">
-                  Hola, {usuario?.nombre?.split(' ')[0]} {/* Muestra solo el primer nombre */}
+                <span className="text-xs font-bold text-zinc-400 uppercase tracking-wide">
+                  HOLA, <span className="text-[#C9A227]">{usuario?.nombre?.split(' ')[0]}</span>
                 </span>
-                
-                <button 
-                    onClick={handleLogout} 
-                    className="flex items-center gap-2 bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-500 px-4 py-2 rounded-full font-bold transition text-sm border border-slate-200"
-                >
-                    <LogOut size={18} />
-                    <span className="hidden md:inline">Salir</span>
+                <button onClick={handleLogout} className="bg-[#1A1A1A] hover:bg-[#C9A227] text-white hover:text-[#131313] p-2 rounded-lg transition-all border border-white/10 hover:border-[#C9A227]">
+                  <LogOut size={18} />
                 </button>
               </div>
             ) : (
-              // --- SI NO ESTÁ LOGUEADO ---
-              <button 
-                  onClick={() => navigate('/login')} 
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full font-bold transition text-sm md:text-base flex items-center gap-2"
-              >
-                  <User size={18} />
-                  Iniciar Sesión
+              <button onClick={() => navigate('/login')} className="bg-[#C9A227] text-[#131313] px-5 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-white transition-colors">
+                Ingresar
               </button>
             )}
-
-            {/* BOTÓN HAMBURGUESA (Móvil) */}
-            <button 
-                className="md:hidden text-slate-800 focus:outline-none ml-2"
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                {isOpen ? <X size={28} /> : <Menu size={28} />}
-            </button>
+          </div>
         </div>
+
+        {/* --- BOTÓN HAMBURGUESA --- */}
+        <button className="md:hidden text-white p-2" onClick={() => setIsOpen(!isOpen)}>
+          {!isOpen && <Menu size={28} />}
+        </button>
       </div>
 
-      {/* MENÚ MÓVIL */}
+      {/* --- MENÚ MÓVIL --- */}
       {isOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 absolute w-full left-0 shadow-lg flex flex-col z-50">
-          {/* Si está logueado, mostramos su nombre arriba en el menú móvil */}
-          {isAuth && (
-            <div className="p-4 bg-slate-50 border-b border-slate-100 text-center font-bold text-slate-700">
-               👤 {usuario?.nombre} {usuario?.apellido}
+        <div className="md:hidden fixed inset-0 z-50 bg-[#0a0a0a] flex flex-col">
+          <div className="flex items-center justify-between p-6 border-b border-[#C9A227]/20 bg-gradient-to-r from-[#131313] to-[#1A1A1A]">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-[#C9A227] flex items-center justify-center text-[#131313]">
+                <Scissors size={20} />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-white tracking-[0.2em] leading-none">SÉNECA</h2>
+                <p className="text-[10px] text-[#C9A227] tracking-[0.4em] mt-1">BARBERÍA</p>
+              </div>
             </div>
-          )}
-
-          <a href="/#inicio" onClick={closeMenu} className="block py-4 px-8 hover:bg-slate-50 border-b border-gray-50 text-gray-600">Inicio</a>
-          <a href="/#servicios" onClick={closeMenu} className="block py-4 px-8 hover:bg-slate-50 border-b border-gray-50 text-gray-600">Servicios</a>
-          
-          {isAuth && (
-            <button 
-              onClick={handleLogout} 
-              className="block w-full text-left py-4 px-8 text-red-500 font-bold hover:bg-red-50 transition"
-            >
-              Cerrar Sesión
+            <button onClick={closeMenu} className="p-2 bg-[#131313] text-zinc-400 rounded-lg border border-white/10">
+              <X size={24} />
             </button>
-          )}
+          </div>
+
+          <div className="flex flex-col p-6 space-y-2">
+            {NAV_LINKS.map((item) => (
+              // 👇 CAMBIO: También en móvil usamos Link
+              item.isHash ? (
+                <a key={item.name} href={item.path} onClick={closeMenu} className="group flex items-center justify-between py-4 border-b border-white/5 text-zinc-400 hover:text-white transition-all">
+                  <span className="text-lg font-medium tracking-widest uppercase">{item.name}</span>
+                  <span className="text-[#C9A227]">→</span>
+                </a>
+              ) : (
+                <Link key={item.name} to={item.path} onClick={closeMenu} className="group flex items-center justify-between py-4 border-b border-white/5 text-zinc-400 hover:text-white transition-all">
+                  <span className="text-lg font-medium tracking-widest uppercase">{item.name}</span>
+                  <span className="text-[#C9A227]">→</span>
+                </Link>
+              )
+            ))}
+          </div>
+
+          <div className="mt-auto p-6 pb-10">
+            {isAuth ? (
+              <div className="bg-[#131313] rounded-2xl p-6 border border-white/10 shadow-2xl relative overflow-hidden">
+                <div className="flex items-center gap-4 mb-6 relative z-10">
+                  <div className="w-12 h-12 rounded-full border-2 border-[#C9A227] flex items-center justify-center bg-zinc-800 text-[#C9A227] font-bold">
+                    {usuario?.nombre?.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-[#C9A227] text-[10px] uppercase font-bold tracking-wider">Bienvenido</p>
+                    <p className="text-white font-bold text-lg leading-none">{usuario?.nombre}</p>
+                  </div>
+                </div>
+                <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 bg-[#1A1A1A] text-zinc-400 hover:text-red-400 border border-white/10 py-3 rounded-xl font-bold transition-all text-sm uppercase">
+                  <LogOut size={16} /> Cerrar Sesión
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => { closeMenu(); navigate('/login'); }} className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-[#C9A227] to-[#b88d15] text-[#131313] py-4 rounded-xl font-black text-sm uppercase tracking-widest">
+                <User size={18} /> Iniciar Sesión
+              </button>
+            )}
+          </div>
         </div>
       )}
     </nav>

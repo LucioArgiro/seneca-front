@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, Loader2, Star, Clock } from 'lucide-react';
+import { Check, Loader2, Star, Clock, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getServicios, type Servicio } from '../api/servicios';
 
@@ -23,95 +23,148 @@ export const Precios = () => {
     fetchServicios();
   }, []);
 
+  // LÓGICA DE ORDENAMIENTO
+  const popular = servicios.find(s => s.popular);
+  const normales = servicios.filter(s => !s.popular);
+  const serviciosOrdenados = popular
+    ? [normales[0], popular, ...normales.slice(1)].filter(Boolean)
+    : servicios;
+
+
   if (loading) {
     return (
-      <div className="py-32 flex justify-center items-center bg-white">
-        <Loader2 className="animate-spin text-blue-600" size={40} />
+      <div className="py-32 flex justify-center items-center bg-[#0a0a0a]">
+        <Loader2 className="animate-spin text-[#C9A227]" size={40} />
       </div>
     );
   }
 
   return (
-    <section id="servicios" className="py-10 bg-slate-50">
-      <div className="max-w-6xl mx-auto px-4">
+    <section id="servicios" className="py-24 bg-[#0a0a0a] relative overflow-hidden">
 
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-slate-900">Nuestros Servicios</h2>
-          <p className="text-gray-500 mt-2 max-w-2xl mx-auto">
-            Elige el tratamiento perfecto para ti. Precios transparentes y sin sorpresas.
+      {/* Fondo decorativo */}
+      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#C9A227]/20 to-transparent"></div>
+
+      <div className="max-w-7xl mx-auto px-4 relative z-10">
+
+        {/* HEADER ANIMADO */}
+        <div
+          className="text-center mb-20"
+          data-aos="fade-up"
+          data-aos-duration="1000"
+        >
+          <span className="text-[#C9A227] font-bold tracking-[0.3em] text-[10px] uppercase mb-3 block">Nuestros Planes</span>
+          <h2 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tight">
+            Elige tu <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500">Estilo</span>
+          </h2>
+          <p className="text-zinc-500 mt-2 max-w-xl mx-auto text-lg font-light">
+            Calidad premium, ambiente exclusivo y precios transparentes.
           </p>
         </div>
 
-        {servicios.length === 0 ? (
-          <div className="text-center p-10 bg-white rounded-xl shadow-sm border border-slate-200">
-            <p className="text-gray-500">No hay servicios disponibles por el momento.</p>
+        {serviciosOrdenados.length === 0 ? (
+          <div className="text-center p-10 bg-[#1E1E1E] rounded-2xl border border-[#333]" data-aos="fade-in">
+            <p className="text-slate-500">No hay servicios disponibles por el momento.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start justify-center">
-            {servicios.map((servicio) => {
+          <div className="flex flex-wrap justify-center gap-6 lg:gap-8 items-center">
 
-              // 2. LÓGICA DE DATOS
+            {serviciosOrdenados.map((servicio, index) => {
+              if (!servicio) return null;
+
               const isPopular = servicio.popular;
-              // Convertimos el string "A, B, C" en array ["A", "B", "C"]
-              const featuresList = servicio.features ? servicio.features.split(',') : [];
+              // Si las features vienen como string, las separamos. Si no, array vacío.
+              // Asegúrate de que tu backend mande un string separado por comas si usas split.
+              const featuresList = (servicio as any).features ? (servicio as any).features.split(',') : [];
 
               return (
                 <div
                   key={servicio.id}
-                  className={`relative bg-white p-8 rounded-2xl border transition-all duration-300 hover:-translate-y-2 flex flex-col ${isPopular? 'border-blue-500 shadow-2xl scale-105 z-12 h-[500px]': 'border-slate-200 shadow-lg hover:shadow-xl h-[500px]'}`}>
+                  // ANIMACIÓN INDIVIDUAL POR TARJETA
+                  data-aos={isPopular ? "zoom-in-up" : "fade-up"} // El popular hace un zoom para destacar
+                  data-aos-delay={index * 150} // Efecto escalera
+                  data-aos-duration="1000"
+
+                  className={`
+                    relative flex flex-col p-8 rounded-3xl transition-all duration-300 group w-full md:max-w-[360px]
+                    ${isPopular
+                      // Popular: Dorado
+                      ? 'bg-[#1E1E1E] border-2 border-[#C9A227] md:scale-105 z-10 h-auto md:h-[540px] shadow-[0_0_30px_rgba(201,162,39,0.15)]'
+                      // Normal: Gris
+                      : 'bg-[#131313] border border-white/5 hover:border-[#C9A227]/30 hover:bg-[#1A1A1A] h-auto md:h-[480px]'
+                    }
+                  `}
+                >
                   {/* BADGE POPULAR */}
                   {isPopular && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 shadow-lg shadow-blue-500/30">
-                      <Star size={12} fill="white" /> Más Elegido
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#C9A227] text-[#131313] px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ring-4 ring-[#0a0a0a] shadow-lg">
+                      <Star size={12} fill="#131313" strokeWidth={0} /> Más Elegido
                     </div>
                   )}
 
-                  <div className="mb-4">
-                    <h3 className="text-xl font-bold text-slate-800 mb-2">{servicio.nombre}</h3>
+                  <div className="mb-6">
+                    <h3 className={`text-xl font-black mb-2 uppercase tracking-wide ${isPopular ? 'text-white' : 'text-zinc-200'}`}>
+                      {servicio.nombre}
+                    </h3>
                     {servicio.descripcion && (
-                      <p className="text-sm text-gray-400 line-clamp-2 min-h-[40px]">
+                      <p className="text-xs font-medium text-zinc-500 line-clamp-2 min-h-[32px] leading-relaxed">
                         {servicio.descripcion}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-4xl font-bold text-slate-900">${servicio.precio}</span>
+                  {/* PRECIO */}
+                  <div className="flex items-baseline gap-1 mb-6">
+                    <span className="text-lg text-zinc-500 font-serif">$</span>
+                    <span className={`text-5xl font-black tracking-tight ${isPopular ? 'text-white' : 'text-zinc-300'}`}>
+                      {servicio.precio}
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-2 text-sm text-blue-600 font-medium mb-6 bg-blue-50 w-fit px-3 py-1 rounded-full">
-                    <Clock size={16} /> {servicio.duracionMinutos} min
+                  {/* DURACIÓN */}
+                  <div className={`
+                    flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider mb-8 w-fit px-3 py-1.5 rounded-lg border
+                    ${isPopular
+                      ? 'bg-[#252525] text-[#C9A227] border-[#C9A227]/20'
+                      : 'bg-[#1A1A1A] text-zinc-500 border-white/5'
+                    }
+                  `}>
+                    <Clock size={12} /> {servicio.duracionMinutos} min de sesión
                   </div>
 
-                  <div className="w-full h-px bg-slate-100 mb-6"></div>
+                  {/* SEPARADOR */}
+                  <div className={`w-full h-px mb-8 ${isPopular ? 'bg-gradient-to-r from-transparent via-[#C9A227]/50 to-transparent' : 'bg-white/5'}`}></div>
 
-                  {/* LISTA DE FEATURES REALES */}
+                  {/* LISTA DE FEATURES */}
                   <ul className="space-y-4 mb-8 flex-1">
                     {featuresList.length > 0 ? (
-                      featuresList.map((feature, i) => (
-                        <li key={i} className="flex items-start gap-3 text-slate-600 text-sm">
-                          <Check size={18} className="text-green-500 shrink-0 mt-0.5" />
-                          <span className="leading-tight">{feature.trim()}</span>
+                      featuresList.map((feature: string, i: number) => (
+                        <li key={i} className="flex items-start gap-3 text-sm text-zinc-400">
+                          <div className={`mt-0.5 p-0.5 rounded-full shrink-0 ${isPopular ? 'bg-[#C9A227] text-[#131313]' : 'bg-[#333] text-zinc-500'}`}>
+                            <Check size={10} strokeWidth={4} />
+                          </div>
+                          <span className="leading-tight font-medium">{feature.trim()}</span>
                         </li>
                       ))
                     ) : (
-                      <li className="text-gray-400 italic text-sm flex gap-2">
-                        <Check size={18} className="text-slate-300" /> Servicio general
+                      <li className="text-zinc-600 italic text-sm flex gap-2 items-center">
+                        <Zap size={14} /> Servicio esencial
                       </li>
                     )}
                   </ul>
 
+                  {/* BOTÓN DE ACCIÓN */}
                   <button
                     onClick={() => navigate('/login')}
-                    className={`w-full py-3.5 rounded-xl font-bold transition flex items-center justify-center gap-2
-                      ${isPopular
-                        ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/30'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                      }
-                    `}
+                    className={`w-full py-4 rounded-xl font-black transition-all duration-300 flex items-center justify-center gap-2 text-xs uppercase tracking-[0.15em] 
+                    ${isPopular
+                        ? 'bg-[#C9A227] text-[#131313] hover:bg-[#b88d15] shadow-[0_0_20px_rgba(201,162,39,0.2)] hover:scale-[1.02]'
+                        : 'bg-[#1A1A1A] text-zinc-400 border border-white/5 hover:border-white/20 hover:text-white hover:bg-[#202020]'
+                      }`}
                   >
-                    Reservar Turno
+                    Reservar Ahora
                   </button>
+
                 </div>
               );
             })}

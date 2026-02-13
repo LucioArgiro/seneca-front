@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "../store/auth";
 import AdminLayout from "../layout/AdminLayout";
 import { BarberLayout } from "../layout/BarberLayout";
@@ -11,17 +11,20 @@ import BarberSettings from "../pages/barber/BarberSettings";
 import ClientDashboard from "../pages/client/ClientDashboard";
 import BarberAgenda from "../pages/barber/BarberAgenda";
 import BarberHistory from "../pages/barber/BarberHistory";
+import { BarberCaja } from '../pages/barber/BarberCaja';
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminServicios from "../pages/admin/AdminServicios";
-/* import AdminAgenda from "../pages/admin/AdminAgenda"; */
 import AdminHistorial from "../pages/admin/AdminHistorial";
 import { AdminEquipo } from "../pages/admin/AdminEquipo";
-import Contacto from '../pages/Contacto';
-import AdminMensajes from '../pages/admin/AdminMensajes';
+import { Contacto } from '../pages/Contacto';
 import { ReservarTurno } from '../pages/client/ReservarTurno';
 import { AdminCreateBarber } from '../pages/admin/AdminCreateBarber';
 import { AdminEditBarber } from '../pages/admin/AdminEditBarber';
 import { AdminAgendaGlobal } from '../pages/admin/AdminAgendaGlobal';
+import { Recuperar } from '../pages/auth/Recuperar';
+import { CajaDashboard } from '../pages/CajaDashboard';
+import { AdminConfiguracion } from '../pages/admin/AdminConfiguracion';
+
 
 interface ProtectedRouteProps {
     children: ReactNode;
@@ -29,14 +32,15 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-    const { isAuth, usuario } = useAuthStore();
+    const { isAuth, usuario, isChecking } = useAuthStore();
 
+    if (isChecking) return <div className="min-h-screen bg-[#0a0a0a]" />;
+    // 1. Si no está autenticado, al login.
     if (!isAuth) return <Navigate to="/login" replace />;
 
+    // 2. Si el rol no está permitido, lo mandamos a "su casa"
     if (usuario && !allowedRoles.includes(usuario.role)) {
-        if (usuario.role === 'ADMIN') return <Navigate to="/admin/agenda" replace />; // Cambiado a agenda
-        if (usuario.role === 'BARBER') return <Navigate to="/barber/agenda" replace />;
-        return <Navigate to="/turnos" replace />;
+        return <Navigate to={getHomeRoute(usuario.role)} replace />;
     }
 
     return <>{children}</>;
@@ -44,70 +48,76 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
 
 const getHomeRoute = (role?: string) => {
     switch (role) {
-        case 'ADMIN': return '/admin/agenda'; // Cambiado a agenda
+        case 'ADMIN': return '/admin/agenda';
         case 'BARBER': return '/barber/agenda';
-        default: return '/turnos';
+        case 'CLIENT': return '/turnos';
+        default: return '/login';
     }
 };
 
 export default function AppRouter() {
-    const { isAuth, usuario } = useAuthStore();
-
+    const { isAuth, usuario, isChecking } = useAuthStore();
+    if (isChecking) return <div className="bg-[#0a0a0a] min-h-screen" />;
     return (
-        <BrowserRouter>
-            <Routes>
-                {/* RUTAS PÚBLICAS */}
-                <Route path="/" element={<Landing />} />
-                <Route path="/login" element={!isAuth ? <Login /> : <Navigate to={getHomeRoute(usuario?.role)} />} />
-                <Route path="/register" element={!isAuth ? <Register /> : <Navigate to={getHomeRoute(usuario?.role)} />} />
-                <Route path="/barberos/:id" element={<BarberProfile />} />
-                <Route path='/contacto' element={<Contacto />} />
 
-                {/* RUTAS CLIENTE */}
-                <Route path="/turnos" element={
-                    <ProtectedRoute allowedRoles={['CLIENT']}>
-                        <ClientDashboard />
-                    </ProtectedRoute>
+        <Routes>
+            {/* --- RUTAS PÚBLICAS --- */}
+            <Route path="/" element={<Landing />} />
+            <Route path='/contacto' element={<Contacto />} />
+            <Route path="/barberos/:id" element={<BarberProfile />} />
+            <Route path='/auth/recuperar' element={<Recuperar />} />
 
-                } />
-                <Route path="/reservar" element={<ReservarTurno />} />
+            {/* Si ya está logueado, no puede ver Login ni Register */}
+            <Route path="/login" element={!isAuth ? <Login /> : <Navigate to={getHomeRoute(usuario?.role)} replace />} />
+            <Route path="/register" element={!isAuth ? <Register /> : <Navigate to={getHomeRoute(usuario?.role)} replace />} />
 
+            {/* --- RUTAS CLIENTE --- */}
+            <Route path="/turnos" element={
+                <ProtectedRoute allowedRoles={['CLIENT']}>
+                    <ClientDashboard />
+                </ProtectedRoute>
+            } />
+            <Route path="/reservar" element={
+                <ProtectedRoute allowedRoles={['CLIENT', 'ADMIN', 'BARBER']}>
+                    <ReservarTurno />
+                </ProtectedRoute>
+            } />
 
-                {/* RUTAS BARBERO */}
-                <Route path="/barber" element={
-                    <ProtectedRoute allowedRoles={['BARBER']}>
-                        <BarberLayout />
-                    </ProtectedRoute>
-                }>
-                    <Route index element={<Navigate to="agenda" replace />} />
-                    <Route path="agenda" element={<BarberAgenda />} />
-                    <Route path="historial" element={<BarberHistory />} />
-                    <Route path="perfil" element={<BarberSettings />} />
-                    <Route path='mensajes' element={<AdminMensajes />} />
-                </Route>
+            {/* --- RUTAS BARBERO (Anidadas) --- */}
+            <Route path="/barber" element={
+                <ProtectedRoute allowedRoles={['BARBER']}>
+                    <BarberLayout />
+                </ProtectedRoute>
+            }>
+                <Route index element={<Navigate to="agenda" replace />} />
+                <Route path="agenda" element={<BarberAgenda />} />
+                <Route path="caja" element={<BarberCaja />} />
+                <Route path="historial" element={<BarberHistory />} />
+                <Route path="perfil" element={<BarberSettings />} />
+                <Route path="mi-caja" element={<CajaDashboard role="BARBER" />} />
+            </Route>
 
-                {/* RUTAS ADMIN */}
-                <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']}> <AdminLayout /></ProtectedRoute>}>
-                    <Route index element={<Navigate to="agenda" replace />} />
-                    {/* <Route path="agenda" element={<AdminAgenda />} /> */}
-                    <Route path="historial" element={<AdminHistorial />} />
-                    <Route path="equipo" element={<AdminEquipo />} />
-                    <Route path="/admin/equipo/nuevo" element={<AdminCreateBarber />} />
-                    <Route path="/admin/equipo/editar/:id" element={<AdminEditBarber />} />
-                    <Route path="/admin/agenda" element={<AdminAgendaGlobal />} />
-                    <Route path="dashboard" element={<AdminDashboard />} />
-                    <Route path="servicios" element={<AdminServicios />} />
-                    <Route path='mensajes' element={<AdminMensajes />} />
-                </Route>
+            {/* --- RUTAS ADMIN (Anidadas) --- */}
+            <Route path="/admin" element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                    <AdminLayout />
+                </ProtectedRoute>
+            }>
+                <Route index element={<Navigate to="agenda" replace />} />
+                <Route path="agenda" element={<AdminAgendaGlobal />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="servicios" element={<AdminServicios />} />
+                <Route path="historial" element={<AdminHistorial />} />
+                <Route path="equipo" element={<AdminEquipo />} />
+                <Route path="equipo/nuevo" element={<AdminCreateBarber />} />
+                <Route path="equipo/editar/:id" element={<AdminEditBarber />} />
+                <Route path="configuracion" element={<AdminConfiguracion />} />
+                <Route path="finanzas" element={<CajaDashboard role="ADMIN" />} />
+            </Route>
 
-                {/* 404 */}
-                <Route path="*" element={
-                    !isAuth
-                        ? <Navigate to="/login" />
-                        : <Navigate to={getHomeRoute(usuario?.role)} />
-                } />
+            {/* --- 404 FALLBACK --- */}
+            <Route path="*" element={<Navigate to={isAuth ? getHomeRoute(usuario?.role) : "/"} replace />} />
 
-            </Routes>
-        </BrowserRouter>
+        </Routes>
     );
 }

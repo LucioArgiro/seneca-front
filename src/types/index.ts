@@ -22,7 +22,8 @@ export interface HorarioBarbero {
 
 export interface BarberoPerfil {
     id: string;
-    // Datos propios del barbero
+    aliasMp?: string;
+    imagenQrUrl?: string;
     biografia?: string;
     precioSenia?: number;
     especialidad?: string;
@@ -92,3 +93,4 @@ export interface Resena {
     fecha: Date;
     cliente: ClientePerfil;
 }
+

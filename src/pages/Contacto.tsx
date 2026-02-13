@@ -1,109 +1,188 @@
-import { useState, useEffect } from 'react';
-import { MapPin, Phone, Mail, Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { useEnviarMensaje } from '../hooks/useMensajes'; 
+import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { Navbar } from '../components/Navbar';
+import { MapaOscuro } from '../components/common/MapaOscuro';
+import { Mail, Phone, MapPin, Send, Instagram, MessageSquare, Loader2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { useNegocio } from '../hooks/useNegocio';
+import { emailApi } from '../api/contacto';
 
-const Contacto = () => {
-  const [mensaje, setMensaje] = useState('');
-  const { mutate, isPending, isError, error, isSuccess, reset } = useEnviarMensaje();
+export const Contacto = () => {
+  const [form, setForm] = useState({ nombre: '', email: '', mensaje: '' });
+  const { negocio, isLoading } = useNegocio();
+  const telefono = negocio?.telefono || "+54 381 000-0000";
+  const email = negocio?.email || "contacto@barberia.com";
+  const direccion = negocio?.direccion || "Dirección no configurada";
+
+  // Limpiador de URL de Instagram
+  const getInstagramUrl = (input: string) => {
+    if (!input) return "https://instagram.com";
+    let user = input.trim();
+    user = user.replace(/^(https?:\/\/)?(www\.)?instagram\.com\//, '').replace('@', '').replace('/', '');
+    return `https://instagram.com/${user}`;
+  };
+  const instagramUrl = getInstagramUrl(negocio?.instagram || "barberia");
+  const enviarMensaje = useMutation({
+    mutationFn: emailApi.enviarContacto,
+    onSuccess: () => {
+      toast.success('¡Mensaje enviado con éxito! Te responderemos pronto.');
+      setForm({ nombre: '', email: '', mensaje: '' });
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error('Hubo un error al enviar. Por favor intenta más tarde.');
+    }
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!mensaje.trim()) return;
-    mutate(mensaje);
+    // Disparamos el envío
+    enviarMensaje.mutate(form);
   };
-  useEffect(() => {
-    if (isSuccess) {
-      setMensaje('');
-      const timer = setTimeout(() => reset(), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [isSuccess, reset]);
-  const errorMsg = error?.response?.data?.message || error?.message || 'Error al enviar';
+
+  if (isLoading) return (
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center gap-4">
+      <Loader2 className="animate-spin text-[#C9A227]" size={40} />
+      <p className="text-[#C9A227] font-serif tracking-widest animate-pulse text-sm">CARGANDO...</p>
+    </div>
+  );
+
   return (
-    <section className="py-20 bg-slate-50 min-h-screen flex items-center">
-      <div className="container mx-auto px-4">
-        
-        {/* ENCABEZADO */}
-        <div className="text-center mb-16 max-w-2xl mx-auto">
-          <span className="text-blue-600 font-bold tracking-wider uppercase text-sm">Contáctanos</span>
-          <h2 className="text-4xl font-bold text-slate-900 mt-2 mb-4">Estamos para Escucharte</h2>
-          <p className="text-slate-500 text-lg">¿Tienes dudas o sugerencias? Déjanos un mensaje y el equipo te responderá a la brevedad.</p>
+    <div className="min-h-screen bg-[#0a0a0a] text-slate-200 font-sans selection:bg-[#C9A227] selection:text-[#131313] pb-20">
+      <Navbar />
+
+      <div className="max-w-6xl mx-auto px-4 pt-32">
+
+        {/* ENCABEZADO LUXURY */}
+        <div className="flex flex-col items-center mb-12 text-center">
+          <div className="inline-flex items-center gap-2 bg-[#C9A227]/10 border border-[#C9A227]/20 px-4 py-1.5 rounded-full mb-6 shadow-[0_0_15px_rgba(201,162,39,0.1)]">
+            <MessageSquare size={14} className="text-[#C9A227]" />
+            <span className="text-[10px] font-bold text-[#C9A227] tracking-widest uppercase">Contáctanos</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tight">
+            Estamos para <span className="text-[#C9A227]">Ayudarte</span>
+          </h1>
+          <p className="text-zinc-500 max-w-lg mx-auto text-sm">Cualquier duda, consulta o sugerencia es bienvenida.</p>
         </div>
 
-        <div className="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col md:flex-row">
-          
-          {/* LADO IZQUIERDO: INFO */}
-          <div className="md:w-5/12 bg-slate-900 p-10 text-white flex flex-col justify-between relative overflow-hidden">
-             <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-[#c4a484] rounded-full opacity-20 blur-3xl"></div>
-             <div className="absolute bottom-0 left-0 -ml-10 -mb-10 w-40 h-40 bg-blue-600 rounded-full opacity-20 blur-3xl"></div>
-             
-             <div>
-                <h3 className="text-2xl font-bold mb-6">Información de Contacto</h3>
-                <p className="text-slate-400 mb-8 leading-relaxed">Ven a visitarnos para vivir la experiencia completa.</p>
-                <div className="space-y-6">
-                    <div className="flex items-start gap-4"><div className="p-3 bg-slate-800 rounded-lg text-[#c4a484]"><MapPin size={24} /></div><div><p className="font-semibold text-white">Ubicación</p><p className="text-slate-400 text-sm">Av. Aconquija 1234, Tucumán</p></div></div>
-                    <div className="flex items-start gap-4"><div className="p-3 bg-slate-800 rounded-lg text-[#c4a484]"><Phone size={24} /></div><div><p className="font-semibold text-white">Teléfono</p><p className="text-slate-400 text-sm">+54 381 444-5555</p></div></div>
-                    <div className="flex items-start gap-4"><div className="p-3 bg-slate-800 rounded-lg text-[#c4a484]"><Mail size={24} /></div><div><p className="font-semibold text-white">Email</p><p className="text-slate-400 text-sm">contacto@seneca.com</p></div></div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+          {/* --- COLUMNA 1: DATOS + FORMULARIO (5 columnas) --- */}
+          <div className="lg:col-span-5 space-y-6">
+
+            {/* Tarjetas de Info Rápida */}
+            <div className="grid grid-cols-2 gap-4">
+              <a href={`tel:${telefono}`} className="bg-[#131313] p-6 rounded-2xl border border-white/5 hover:border-[#C9A227]/30 transition-all group flex flex-col items-center text-center cursor-pointer hover:bg-[#1A1A1A] hover:shadow-[0_0_20px_rgba(201,162,39,0.05)]">
+                <div className="p-3 bg-[#0a0a0a] rounded-full mb-3 text-[#C9A227] border border-[#333] group-hover:scale-110 transition shadow-inner"><Phone size={20} /></div>
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-1">Llámanos</p>
+                <p className="text-white text-xs font-bold break-all">{telefono}</p>
+              </a>
+              <a href={`mailto:${email}`} className="bg-[#131313] p-6 rounded-2xl border border-white/5 hover:border-[#C9A227]/30 transition-all group flex flex-col items-center text-center cursor-pointer hover:bg-[#1A1A1A] hover:shadow-[0_0_20px_rgba(201,162,39,0.05)]">
+                <div className="p-3 bg-[#0a0a0a] rounded-full mb-3 text-[#C9A227] border border-[#333] group-hover:scale-110 transition shadow-inner"><Mail size={20} /></div>
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-1">Escríbenos</p>
+                <p className="text-white text-xs font-bold break-all">{email}</p>
+              </a>
+            </div>
+
+            {/* Formulario Luxury */}
+            <form onSubmit={handleSubmit} className="bg-[#131313] p-8 rounded-3xl border border-[#C9A227]/20 shadow-2xl shadow-black relative overflow-hidden group">
+              <h3 className="text-xl font-black text-white mb-6 flex items-center gap-3 uppercase tracking-wide">
+                <div className="p-2 bg-[#1A1A1A] rounded-lg border border-[#C9A227]/30 text-[#C9A227]">
+                  <Send size={18} />
                 </div>
-             </div>
-          </div>
+                Envíanos un mensaje
+              </h3>
 
-          {/* LADO DERECHO: FORMULARIO */}
-          <div className="md:w-7/12 p-10 md:p-14 bg-white">
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">Envíanos un Mensaje</h3>
-            <p className="text-slate-500 mb-8">Te responderemos directamente a tu panel de usuario.</p>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              
-              <div>
-                <label htmlFor="mensaje" className="block text-sm font-medium text-slate-700 mb-2">Tu Consulta</label>
-                <textarea
-                  id="mensaje"
-                  rows={6}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#c4a484] focus:border-transparent outline-none transition-all resize-none placeholder:text-slate-400"
-                  placeholder="Hola, quisiera saber disponibilidad..."
-                  value={mensaje}
-                  onChange={(e) => setMensaje(e.target.value)}
-                  disabled={isPending}
-                  required
-                ></textarea>
-              </div>
-
-              {/* FEEDBACK UI */}
-              {isError && (
-                <div className="p-4 rounded-xl bg-red-50 text-red-600 flex items-center gap-3 animate-in fade-in">
-                  <AlertCircle size={20} />
-                  <span className="text-sm font-medium">{errorMsg}</span>
-                </div>
-              )}
-
-              {isSuccess && (
-                <div className="p-4 rounded-xl bg-green-50 text-green-700 flex items-center gap-3 animate-in fade-in">
-                  <CheckCircle size={20} />
+              <div className="space-y-5 relative z-10">
+                <div className="grid grid-cols-2 gap-5">
                   <div>
-                    <p className="font-bold text-sm">¡Mensaje Enviado!</p>
-                    <p className="text-xs opacity-90">Pronto recibirás respuesta.</p>
+                    <label className="block text-[10px] font-bold text-[#C9A227] uppercase tracking-widest mb-2">Nombre</label>
+                    <input
+                      required
+                      type="text"
+                      value={form.nombre}
+                      onChange={e => setForm({ ...form, nombre: e.target.value })}
+                      disabled={enviarMensaje.isPending}
+                      className="w-full bg-[#0a0a0a] border border-[#333] rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227] transition-all disabled:opacity-50"
+                      placeholder="Tu Nombre"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#C9A227] uppercase tracking-widest mb-2">Email</label>
+                    <input
+                      required
+                      type="email"
+                      value={form.email}
+                      onChange={e => setForm({ ...form, email: e.target.value })}
+                      disabled={enviarMensaje.isPending}
+                      className="w-full bg-[#0a0a0a] border border-[#333] rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227] transition-all disabled:opacity-50"
+                      placeholder="tucorreo@email.com"
+                    />
                   </div>
                 </div>
-              )}
+                <div>
+                  <label className="block text-[10px] font-bold text-[#C9A227] uppercase tracking-widest mb-2">Mensaje</label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={form.mensaje}
+                    onChange={e => setForm({ ...form, mensaje: e.target.value })}
+                    disabled={enviarMensaje.isPending}
+                    className="w-full bg-[#0a0a0a] border border-[#333] rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-700 focus:outline-none focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227] transition-all resize-none disabled:opacity-50"
+                    placeholder="Escribe tu consulta aquí..."
+                  />
+                </div>
 
-              <button
-                type="submit"
-                disabled={isPending || isSuccess}
-                className="w-full py-4 px-6 bg-[#c4a484] hover:bg-[#a88b6e] text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isPending ? (
-                  <> <Loader2 size={20} className="animate-spin" /> Enviando... </>
-                ) : (
-                  <> Enviar Mensaje <Send size={20} /> </>
-                )}
-              </button>
+                {/* BOTÓN DORADO */}
+                <button
+                  type="submit"
+                  disabled={enviarMensaje.isPending}
+                  className="w-full bg-[#C9A227] hover:bg-[#b88d15] text-[#131313] font-black uppercase tracking-widest py-4 rounded-xl text-xs flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(201,162,39,0.2)] hover:shadow-[0_0_30px_rgba(201,162,39,0.4)] hover:scale-[1.02] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 mt-2"
+                >
+                  {enviarMensaje.isPending ? (
+                    <><Loader2 size={16} className="animate-spin" /> ENVIANDO...</>
+                  ) : (
+                    <>ENVIAR MENSAJE</>
+                  )}
+                </button>
+              </div>
             </form>
+          </div>
+
+          {/* --- COLUMNA 2: MAPA (7 columnas) --- */}
+          <div className="lg:col-span-7 flex flex-col h-[500px] lg:h-[600px]">
+            <div className="flex-1 bg-[#131313] rounded-3xl border border-white/5 p-2 relative shadow-2xl overflow-hidden group">
+
+              {/* Contenedor del mapa con borde interno */}
+              <div className="w-full h-full rounded-2xl overflow-hidden relative border border-[#333]">
+                <MapaOscuro
+                  nombre={negocio?.nombre}
+                  direccion={direccion}
+                />
+              </div>
+
+              {/* Tarjeta Flotante de Dirección */}
+              <div className="absolute top-6 left-6 right-6 sm:left-auto sm:right-6 sm:w-72 bg-[#131313]/90 backdrop-blur-md p-4 rounded-xl border border-[#C9A227]/20 shadow-xl z-[400] flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-700">
+                <div className="p-2.5 bg-[#0a0a0a] rounded-lg text-[#C9A227] border border-[#333] shrink-0"><MapPin size={20} /></div>
+                <div>
+                  <p className="text-[#C9A227] text-[10px] font-bold uppercase tracking-widest mb-1">Nuestra Ubicación</p>
+                  <p className="text-white text-xs font-medium leading-relaxed">{direccion}</p>
+                </div>
+              </div>
+
+              {/* Botón Flotante Instagram */}
+              {negocio?.instagram && (
+                <a href={instagramUrl} target="_blank" rel="noopener noreferrer"
+                  className="absolute bottom-6 right-6 bg-gradient-to-tr from-[#fd5949] to-[#d6249f] text-white p-3.5 rounded-full shadow-lg z-[400] hover:scale-110 hover:shadow-pink-500/30 transition-all duration-300 group/insta"
+                  title="Ver en Instagram">
+                  <Instagram size={24} className="group-hover/insta:rotate-12 transition-transform" />
+                </a>
+              )}
+            </div>
           </div>
 
         </div>
       </div>
-    </section>
+    </div>
   );
 };
-
-export default Contacto;

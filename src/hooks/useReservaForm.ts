@@ -9,11 +9,13 @@ export const useReservaForm = () => {
     const { state } = useLocation();
     const { servicios, barberos, isLoading } = useReservaData();
     const { mutate, isPending: isSubmitting, error: mutationError } = useReservaActions();
+
     const [selectedService, setSelectedService] = useState(state?.turno?.servicio?.id || '');
     const [selectedBarber, setSelectedBarber] = useState(state?.turno?.barbero?.id || state?.barberId || '');
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
     const [opcionPago, setOpcionPago] = useState<'TOTAL' | 'SENIA' | 'LOCAL'>('TOTAL');
+
     useEffect(() => {
         if (!selectedBarber && state?.barberId && barberos.length > 0) {
             setSelectedBarber(state.barberId);
@@ -33,21 +35,7 @@ export const useReservaForm = () => {
         return dateObj.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'short' });
     }, [selectedDate]);
 
-    // 👇 EFECTO DE AUTO-SELECCIÓN DE PAGO
-    // Si cambia el barbero, verificamos si cobra seña.
-    useEffect(() => {
-        if (barberInfo) {
-            const senia = Number(barberInfo.precioSenia) || 0;
-            if (senia === 0) {
-                // Si no cobra seña, forzamos pago LOCAL
-                setOpcionPago('LOCAL');
-            } else {
-                // Si cobra seña y estaba en LOCAL, volvemos a TOTAL por defecto
-                setOpcionPago(prev => prev === 'LOCAL' ? 'TOTAL' : prev);
-            }
-        }
-    }, [barberInfo]);
-
+    // Lógica de Precios
     const precios = useMemo(() => {
         const total = Number(serviceInfo?.precio) || 0;
         const senia = Number(barberInfo?.precioSenia) || 0;
@@ -62,16 +50,36 @@ export const useReservaForm = () => {
         };
     }, [serviceInfo, barberInfo, opcionPago]);
 
+    // EFECTO DE AUTO-SELECCIÓN DE PAGO (Optimizado)
+    useEffect(() => {
+        if (barberInfo) {
+            const senia = Number(barberInfo.precioSenia) || 0;
+            if (senia === 0) {
+                // Si la seña es 0, por defecto sugerimos LOCAL, pero permitimos al usuario cambiar a TOTAL si quiere
+                // Solo forzamos si la opción actual era SENIA (que no tiene sentido con seña 0)
+                setOpcionPago(prev => prev === 'SENIA' ? 'LOCAL' : prev === 'TOTAL' ? prev : 'LOCAL');
+            } else {
+                // Si hay seña obligatoria, nunca puede ser LOCAL
+                setOpcionPago(prev => prev === 'LOCAL' ? 'TOTAL' : prev);
+            }
+        }
+    }, [barberInfo]);
+
     // 7. Submit
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedTime) return;
+
+        // 👇 AQUÍ ESTABA LA CLAVE: Enviamos montoPagar al Backend
+        const montoAEnviar = precios.aPagarHoy;
 
         mutate({
             data: {
                 fecha: `${selectedDate}T${selectedTime}:00`,
                 barberoId: selectedBarber,
                 servicioId: selectedService,
+                montoPagar: montoAEnviar,
+                tipoPago: opcionPago 
             },
             opcionPago,
             isReprogramming: state?.modo === 'reprogramar',
@@ -87,7 +95,6 @@ export const useReservaForm = () => {
     }, [mutationError]);
 
     return {
-        // Estado UI
         formState: { selectedService, selectedBarber, selectedDate, selectedTime, opcionPago },
         setters: { setSelectedService, setSelectedBarber, setSelectedDate, setSelectedTime, setOpcionPago },
         data: {

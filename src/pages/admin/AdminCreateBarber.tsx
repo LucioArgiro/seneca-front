@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { barberosApi } from '../../api/barberos';
 import { type CreateBarberoDto } from '../../types';
-import { User, Mail, Lock, Hash, Phone, Calendar, Users, Briefcase, Save, CalendarDays, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { User, Mail, Lock, Hash, Phone, Calendar, Users, Briefcase, Save, CalendarDays, ArrowLeft, ShieldCheck, UserCheck } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { AgendaSelector } from '../../components/admin/AgendaSelector';
 
+// Agregamos 'apellido' al estado inicial
 const initialForm: CreateBarberoDto = {
-  fullname: '',
+  nombre: '',
+  apellido: '',
   email: '',
   password: '',
   dni: '',
@@ -26,17 +28,23 @@ export const AdminCreateBarber = () => {
   const [form, setForm] = useState<CreateBarberoDto>(initialForm);
   const [horarios, setHorarios] = useState<any[]>([]);
 
+  // Estilos Luxury para Toast
+  const toastStyles = {
+    style: {
+      background: '#1A1A1A',
+      color: '#fff',
+      border: '1px solid #C9A227',
+    },
+    success: { iconTheme: { primary: '#C9A227', secondary: '#1A1A1A' } },
+    error: { style: { background: '#1A1A1A', color: '#fff', border: '1px solid #EF4444' } }
+  };
+
   const createMutation = useMutation({
     mutationFn: barberosApi.create,
     onSuccess: () => {
-      toast.success('¡Profesional dado de alta correctamente!');
       queryClient.invalidateQueries({ queryKey: ['barberos-admin'] });
       navigate('/admin/equipo'); 
     },
-    onError: (error: any) => {
-      const msg = error.response?.data?.message || 'Error al crear barbero';
-      toast.error(msg);
-    }
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -47,7 +55,16 @@ export const AdminCreateBarber = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const payload = { ...form, horarios };
-    createMutation.mutate(payload);
+    
+    toast.promise(
+        createMutation.mutateAsync(payload),
+        {
+            loading: 'Creando perfil profesional...',
+            success: '¡Profesional dado de alta correctamente!',
+            error: (err) => err.response?.data?.message || 'Error al crear barbero'
+        },
+        toastStyles
+    );
   };
 
   // --- LÓGICA PARA ETIQUETA DE AGENDA ---
@@ -62,27 +79,29 @@ export const AdminCreateBarber = () => {
   }, [horarios]);
 
   const sexoMap: Record<string, string> = { 'M': 'Masculino', 'F': 'Femenino', 'X': 'Otro' };
-  const labelClass = "block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1";
+  
+  // Clases Reutilizables Luxury Dark
+  const labelClass = "block text-xs font-bold text-zinc-400 uppercase mb-2 ml-1 tracking-wider";
   const inputContainer = "relative group";
-  const iconClass = "absolute left-3 top-3.5 text-slate-400 group-focus-within:text-blue-500 transition-colors pointer-events-none";
-  const inputClass = "w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all";
+  const iconClass = "absolute left-4 top-3.5 text-zinc-500 group-focus-within:text-[#C9A227] transition-colors pointer-events-none";
+  const inputClass = "w-full pl-12 pr-4 py-3 bg-[#131313] border border-zinc-800 rounded-xl text-white font-medium placeholder-zinc-700 focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227] outline-none transition-all";
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20 font-sans">
+    <div className="min-h-screen bg-[#131313] pb-20 font-sans text-slate-200">
       
       {/* HEADER */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-20">
+      <div className="bg-[#1A1A1A] border-b border-white/5 sticky top-0 z-20 shadow-lg">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center gap-4">
                 <button 
                     onClick={() => navigate(-1)} 
-                    className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"
+                    className="p-2 hover:bg-white/5 rounded-full text-zinc-400 hover:text-[#C9A227] transition-colors"
                     title="Volver atrás"
                 >
                     <ArrowLeft size={24} />
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Alta de Profesional</h1>
+                    <h1 className="text-2xl font-black text-white tracking-tight">Alta de Profesional</h1>
                 </div>
             </div>
         </div>
@@ -94,41 +113,54 @@ export const AdminCreateBarber = () => {
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
             {/* --- COLUMNA IZQUIERDA (FORMULARIO) --- */}
-            <div className="lg:col-span-8">
+            <div className="lg:col-span-8 space-y-8">
                 
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    
-                    {/* 1. CREDENCIALES */}
+                {/* 1. CREDENCIALES */}
+                <div className="bg-[#1A1A1A] rounded-2xl shadow-xl border border-white/5 overflow-hidden">
                     <div className="p-8">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                                <ShieldCheck size={20} />
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="w-12 h-12 rounded-xl bg-[#C9A227]/10 text-[#C9A227] border border-[#C9A227]/20 flex items-center justify-center shadow-lg shadow-[#C9A227]/5">
+                                <ShieldCheck size={24} />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-slate-800">Credenciales de Acceso</h2>
-                                <p className="text-xs text-slate-400">Datos de sistema.</p>
+                                <h2 className="text-xl font-bold text-white">Credenciales de Acceso</h2>
+                                <p className="text-sm text-zinc-400">Datos de sistema para inicio de sesión.</p>
                             </div>
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-6">
+                            {/* CAMPO NOMBRE */}
                             <div>
-                                <label className={labelClass}>Nombre Completo</label>
+                                <label className={labelClass}>Nombre</label>
                                 <div className={inputContainer}>
                                     <User className={iconClass} size={18} />
-                                    <input required type="text" name="fullname" value={form.fullname} onChange={handleChange}
-                                        className={inputClass} placeholder="Ej: Juan Pérez"
+                                    <input required type="text" name="nombre" value={form.nombre} onChange={handleChange}
+                                        className={inputClass} placeholder="Ej: Juan"
                                     />
                                 </div>
                             </div>
+
+                            {/* CAMPO APELLIDO */}
                             <div>
+                                <label className={labelClass}>Apellido</label>
+                                <div className={inputContainer}>
+                                    <UserCheck className={iconClass} size={18} />
+                                    <input required type="text" name="apellido" value={form.apellido} onChange={handleChange}
+                                        className={inputClass} placeholder="Ej: Pérez"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-2">
                                 <label className={labelClass}>Email Corporativo</label>
                                 <div className={inputContainer}>
                                     <Mail className={iconClass} size={18} />
                                     <input required type="email" name="email" value={form.email} onChange={handleChange}
-                                        className={inputClass} placeholder="juan@seneca.com"
+                                        className={inputClass} placeholder="juan@barberia.com"
                                     />
                                 </div>
                             </div>
+
                             <div className="md:col-span-2">
                                 <label className={labelClass}>Contraseña Temporal</label>
                                 <div className={inputContainer}>
@@ -140,18 +172,18 @@ export const AdminCreateBarber = () => {
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div className="h-px bg-slate-100 mx-8"></div>
-
-                    {/* 2. FICHA PERSONAL */}
-                    <div className="p-8 bg-slate-50/20">
-                        <div className="flex items-center gap-3 mb-6">
-                             <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
-                                <Briefcase size={20} />
+                {/* 2. FICHA PERSONAL */}
+                <div className="bg-[#1A1A1A] rounded-2xl shadow-xl border border-white/5 overflow-hidden">
+                    <div className="p-8">
+                        <div className="flex items-center gap-4 mb-8">
+                             <div className="w-12 h-12 rounded-xl bg-[#C9A227]/10 text-[#C9A227] border border-[#C9A227]/20 flex items-center justify-center">
+                                <Briefcase size={24} />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-slate-800">Ficha Personal</h2>
-                                <p className="text-xs text-slate-400">Datos legales.</p>
+                                <h2 className="text-xl font-bold text-white">Ficha Personal</h2>
+                                <p className="text-sm text-zinc-400">Información legal y de contacto.</p>
                             </div>
                         </div>
 
@@ -188,7 +220,7 @@ export const AdminCreateBarber = () => {
                                 <div className={inputContainer}>
                                     <Users className={iconClass} size={18} />
                                     <select name="sexo" required value={form.sexo} onChange={handleChange}
-                                        className={inputClass + " appearance-none"}
+                                        className={inputClass + " appearance-none cursor-pointer"}
                                     >
                                         <option value="M">Masculino</option>
                                         <option value="F">Femenino</option>
@@ -198,24 +230,23 @@ export const AdminCreateBarber = () => {
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div className="h-px bg-slate-100 mx-8"></div>
-
-                    {/* 3. AGENDA */}
+                {/* 3. AGENDA */}
+                <div className="bg-[#1A1A1A] rounded-2xl shadow-xl border border-white/5 overflow-hidden">
                     <div className="p-8">
-                        <div className="flex items-center gap-3 mb-6">
-                             <div className="w-10 h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center">
-                                <CalendarDays size={20} />
+                        <div className="flex items-center gap-4 mb-8">
+                             <div className="w-12 h-12 rounded-xl bg-[#C9A227]/10 text-[#C9A227] border border-[#C9A227]/20 flex items-center justify-center">
+                                <CalendarDays size={24} />
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-slate-800">Agenda Laboral</h2>
-                                <p className="text-xs text-slate-400">Define los turnos de disponibilidad.</p>
+                                <h2 className="text-xl font-bold text-white">Agenda Laboral</h2>
+                                <p className="text-sm text-zinc-400">Define los turnos de disponibilidad semanal.</p>
                             </div>
                         </div>
                         
                         <AgendaSelector onChange={setHorarios} />
                     </div>
-
                 </div>
             </div>
 
@@ -223,70 +254,61 @@ export const AdminCreateBarber = () => {
             <div className="lg:col-span-4 space-y-6">
                 
                 {/* TARJETA RESUMEN STICKY */}
-                <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sticky top-24">
-                    <h3 className="font-bold text-slate-800 mb-6 text-sm uppercase tracking-wider border-b border-slate-100 pb-4">Resumen de Alta</h3>
+                <div className="bg-[#1A1A1A] rounded-2xl shadow-2xl border border-white/5 p-6 sticky top-28">
+                    <h3 className="font-bold text-[#C9A227] mb-6 text-xs uppercase tracking-[0.2em] border-b border-zinc-800 pb-4">
+                        Resumen de Alta
+                    </h3>
                     
                     {/* Previsualización Mini */}
                     <div className="flex items-center gap-4 mb-6">
-                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 shrink-0">
-                            <User size={24} />
+                        <div className="w-14 h-14 rounded-full bg-[#131313] flex items-center justify-center text-zinc-500 border border-zinc-800 shrink-0 shadow-inner">
+                            <User size={28} />
                         </div>
                         <div className="overflow-hidden">
-                            <p className="font-bold text-slate-900 text-sm truncate">{form.fullname || 'Nuevo Profesional'}</p>
-                            <p className="text-xs text-slate-500 truncate">{form.email || 'email@...'}</p>
+                            <p className="font-bold text-white text-lg truncate capitalize">
+                                {form.nombre || 'Nuevo'} {form.apellido}
+                            </p>
+                            <p className="text-xs text-zinc-500 truncate">{form.email || 'email@...'}</p>
                         </div>
                     </div>
 
                     {/* LISTA DE DATOS */}
-                    <div className="bg-slate-50 rounded-xl p-4 mb-6 space-y-3 text-xs border border-slate-100">
+                    <div className="bg-[#131313] rounded-xl p-5 mb-6 space-y-4 text-xs border border-zinc-800 shadow-inner">
                         <div className="flex justify-between items-center">
-                            <span className="text-slate-500 font-medium">DNI</span>
-                            <span className="font-bold text-slate-800">{form.dni || '--'}</span>
+                            <span className="text-zinc-500 font-medium uppercase tracking-wide">DNI</span>
+                            <span className="font-bold text-zinc-300 tracking-wider">{form.dni || '--'}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-slate-500 font-medium">Teléfono</span>
-                            <span className="font-bold text-slate-800">{form.telefono || '--'}</span>
+                            <span className="text-zinc-500 font-medium uppercase tracking-wide">Teléfono</span>
+                            <span className="font-bold text-zinc-300">{form.telefono || '--'}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-slate-500 font-medium">Edad</span>
-                            <span className="font-bold text-slate-800">{form.edad} años</span>
+                            <span className="text-zinc-500 font-medium uppercase tracking-wide">Edad</span>
+                            <span className="font-bold text-zinc-300">{form.edad} años</span>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-slate-500 font-medium">Sexo</span>
-                            <span className="font-bold text-slate-800">{sexoMap[form.sexo]}</span>
+                            <span className="text-zinc-500 font-medium uppercase tracking-wide">Sexo</span>
+                            <span className="font-bold text-zinc-300">{sexoMap[form.sexo]}</span>
                         </div>
                         
-                        <div className="h-px bg-slate-200 my-2"></div>
+                        <div className="h-px bg-zinc-800 my-2"></div>
 
                         <div className="flex justify-between items-center pt-1">
-                            <span className="text-slate-500 font-medium">Agenda</span>
-                            <span className={`font-bold text-xs px-2 py-1 rounded-md border
+                            <span className="text-zinc-500 font-medium uppercase tracking-wide">Agenda</span>
+                            <span className={`font-bold text-[10px] px-2 py-1 rounded border uppercase tracking-wider
                                 ${horarios.length > 0 
-                                    ? 'bg-blue-50 text-blue-700 border-blue-100' 
-                                    : 'bg-slate-100 text-slate-400 border-slate-200'}
+                                    ? 'bg-[#C9A227]/10 text-[#C9A227] border-[#C9A227]/30' 
+                                    : 'bg-red-900/20 text-red-500 border-red-900/30'}
                             `}>
                                 {agendaLabel}
                             </span>
                         </div>
                     </div>
 
-                    <button 
-                        type="submit" 
-                        disabled={createMutation.isPending}
-                        className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-slate-900/20 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed group"
-                    >
-                        {createMutation.isPending ? 'Procesando...' : <><Save size={18} className="group-hover:scale-110 transition-transform"/> Confirmar Alta</>}
-                    </button>
+                    <button type="submit" disabled={createMutation.isPending} className="w-full py-4 rounded-xl font-bold text-sm tracking-wide text-white text-[#C9A227] bg-[#131313] rounded-lg hover:bg-[#C9A227] hover:text-[#131313] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-300 transform hover:-translate-y-0.5 active:scale-95 border border-[#C9A227]/30 flex items-center justify-center gap-2 group">{createMutation.isPending ? 'PROCESANDO...' : <><Save size={18} className="group-hover:scale-110 transition-transform"/> CONFIRMAR ALTA</>}</button>
                     
-                    <button 
-                        type="button" 
-                        onClick={() => navigate(-1)}
-                        className="w-full mt-3 py-2.5 text-slate-400 font-bold text-xs hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                    >
-                        Cancelar operación
-                    </button>
+                    <button type="button" onClick={() => navigate(-1)} className="w-full mt-3 py-3 text-zinc-500 font-bold text-xs hover:text-red-400 hover:bg-red-900/10 rounded-xl transition-colors uppercase tracking-wide">Cancelar operación</button>
                 </div>
-
             </div>
 
         </form>

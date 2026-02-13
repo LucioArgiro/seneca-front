@@ -2,11 +2,13 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { turnosApi, type TurnoResponse } from '../api/turnos';
 import { barberosApi } from '../api/barberos';
+import dayjs from 'dayjs';
 
 export interface ClienteCRM {
   id: string;
   fullname: string;
   email: string;
+  telefono: string;
   totalTurnos: number;
   totalGastado: number;
   ultimaVisita: string;
@@ -15,106 +17,81 @@ export interface ClienteCRM {
 }
 
 export const useClientesCRM = () => {
-  // 1. ESTADOS DE FILTRO (Locales del hook)
   const [filtroBarbero, setFiltroBarbero] = useState<string>('todos');
   const [busqueda, setBusqueda] = useState<string>('');
-
-  // 2. PETICIONES CON TANSTACK QUERY (En paralelo)
-  const queryTurnos = useQuery({
-    queryKey: ['turnos', 'admin-historial'],
-    queryFn: turnosApi.getHistorial,
-  });
-
-  const queryBarberos = useQuery({
-    queryKey: ['barberos'],
-    queryFn: barberosApi.getAll,
-  });
-
-  // 3. LÓGICA DE PROCESAMIENTO (Memorizada para rendimiento)
+  const queryTurnos = useQuery({queryKey: ['turnos', 'historial-crm'], queryFn: turnosApi.getHistorial,});
+  const queryBarberos = useQuery({queryKey: ['barberos'],queryFn: barberosApi.getAll,enabled: false,});
   const clientesProcesados = useMemo(() => {
-    if (!queryTurnos.data) return [];
-
     const turnos = queryTurnos.data;
-
-    // A. Filtrar Turnos por Barbero y Estado
+    if (!turnos || !Array.isArray(turnos)) return [];
     const turnosValidos = turnos.filter((t) => {
-      const esFinalizado = t.estado === 'COMPLETADO' || t.estado === 'CANCELADO';
-      const cumpleBarbero = filtroBarbero === 'todos' || t.barbero?.id === filtroBarbero;
-      return esFinalizado && cumpleBarbero;
-    });
+      const esHistorial = t.estado === 'COMPLETADO' || t.estado === 'CANCELADO' || t.estado === 'CONFIRMADO'; // Agregamos confirmados para que veas futuros
+      const cumpleBarbero =
+        filtroBarbero === 'todos' ||
+        t.barbero?.id === filtroBarbero ||
+        (t.barbero as any)?.usuario?.id === filtroBarbero;
 
-    // B. Agrupar por Cliente
+      return esHistorial && cumpleBarbero;
+    });
     const grupos = turnosValidos.reduce((acc, turno) => {
       const clienteId = turno.cliente?.id;
       if (!clienteId) return acc;
-
-      // Adaptar según tu estructura de datos (si usuario está anidado o plano)
-      const nombre = turno.cliente?.usuario?.nombre || 'Anónimo';
-      const apellido = turno.cliente?.usuario?.apellido || 'Anónimo';
-      const email = turno.cliente?.usuario?.email || 'Sin Email';
-
       if (!acc[clienteId]) {
+        const u = turno.cliente.usuario;
         acc[clienteId] = {
           id: clienteId,
-          fullname: `${nombre} ${apellido}`,
-          email: email,
+          fullname: u ? `${u.nombre} ${u.apellido}` : 'Cliente Desconocido',
+          email: u?.email || '',
+          telefono: (turno.cliente as any)?.telefono || '',
           totalTurnos: 0,
           totalGastado: 0,
           ultimaVisita: turno.fecha,
           historial: [],
-          estadoCliente: 'NUEVO', // Valor default
+          estadoCliente: 'NUEVO',
         };
       }
-
       acc[clienteId].historial.push(turno);
-
-      // Sumar si está completado
       if (turno.estado === 'COMPLETADO') {
         acc[clienteId].totalTurnos += 1;
         acc[clienteId].totalGastado += Number(turno.servicio?.precio || 0);
       }
 
-      // Actualizar fecha más reciente
-      if (new Date(turno.fecha) > new Date(acc[clienteId].ultimaVisita)) {
+      if (dayjs(turno.fecha).isAfter(dayjs(acc[clienteId].ultimaVisita))) {
         acc[clienteId].ultimaVisita = turno.fecha;
       }
 
       return acc;
     }, {} as Record<string, ClienteCRM>);
 
-    // C. Calcular Etiquetas y Convertir a Array
     let lista = Object.values(grupos).map((c) => {
-      const diasSinVenir = (new Date().getTime() - new Date(c.ultimaVisita).getTime()) / (1000 * 3600 * 24);
-      
+      const hoy = dayjs();
+      const ultima = dayjs(c.ultimaVisita);
+      const diasSinVenir = hoy.diff(ultima, 'day');
+
       let etiqueta: ClienteCRM['estadoCliente'] = 'NUEVO';
-      if (c.totalTurnos >= 10) etiqueta = 'VIP';
+
+      // Lógica de etiquetas
+      if (c.totalTurnos === 0) etiqueta = 'NUEVO';
+      else if (c.totalTurnos >= 10) etiqueta = 'VIP';
       else if (c.totalTurnos >= 3) etiqueta = 'FRECUENTE';
-      if (diasSinVenir > 60) etiqueta = 'INACTIVO';
+      if (diasSinVenir > 60 && c.totalTurnos > 0) etiqueta = 'INACTIVO';
 
       return { ...c, estadoCliente: etiqueta };
     });
-
-    // D. Filtro de Búsqueda (Texto)
     if (busqueda) {
       const lower = busqueda.toLowerCase();
-      lista = lista.filter(c => c.fullname.toLowerCase().includes(lower) || c.email.toLowerCase().includes(lower));
+      lista = lista.filter(c =>
+        c.fullname.toLowerCase().includes(lower) ||
+        c.email.toLowerCase().includes(lower) ||
+        c.telefono.toLowerCase().includes(lower)
+      );
     }
-
-    // E. Ordenar: Los que vinieron hace poco primero
-    return lista.sort((a, b) => new Date(b.ultimaVisita).getTime() - new Date(a.ultimaVisita).getTime());
-
-  }, [queryTurnos.data, filtroBarbero, busqueda]); // Se recalcula solo si esto cambia
-
+    return lista.sort((a, b) => dayjs(b.ultimaVisita).valueOf() - dayjs(a.ultimaVisita).valueOf());
+  }, [queryTurnos.data, filtroBarbero, busqueda]);
   return {
-    // Datos procesados
     clientes: clientesProcesados,
     barberos: queryBarberos.data || [],
-    
-    // Estados de carga y error
-    isLoading: queryTurnos.isLoading || queryBarberos.isLoading,
-    isError: queryTurnos.isError,
-
-    // Controladores de filtros para la UI
+    isLoading: queryTurnos.isLoading,
     filtros: {
       barbero: filtroBarbero,
       setBarbero: setFiltroBarbero,

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import {type Usuario } from '../api/usuarios';
+import { type Usuario } from '../types/index';
 
 // Definimos qué datos guardaremos mientras el cliente reserva
 interface BookingState {

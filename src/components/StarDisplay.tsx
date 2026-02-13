@@ -1,9 +1,9 @@
 import { Star, StarHalf } from 'lucide-react';
 
 interface Props {
-  rating: number; 
-  count?: number; 
-  size?: number;  
+  rating: number;
+  count?: number;
+  size?: number;
   showCount?: boolean;
 }
 
@@ -12,11 +12,11 @@ export const StarDisplay = ({ rating, count = 0, size = 16, showCount = true }: 
     const stars = [];
     for (let i = 1; i <= 5; i++) {
       if (rating >= i) {
-        stars.push(<Star key={i} size={size} className="fill-yellow-400 text-yellow-400" />);
+        stars.push(<Star key={i} size={size} className="fill-[#C9A227] text-[#C9A227]" />);
       } else if (rating >= i - 0.5) {
-        stars.push(<StarHalf key={i} size={size} className="fill-yellow-400 text-yellow-400" />);
+        stars.push(<StarHalf key={i} size={size} className="fill-[#C9A227] text-[#C9A227]" />);
       } else {
-        stars.push(<Star key={i} size={size} className="text-slate-200" />);
+        stars.push(<Star key={i} size={size} className="text-zinc-700" />);
       }
     }
     return stars;
@@ -28,12 +28,12 @@ export const StarDisplay = ({ rating, count = 0, size = 16, showCount = true }: 
         {renderStars()}
       </div>
       {showCount && count > 0 && (
-        <span className="text-xs text-slate-500 font-medium">
-           {rating} ({count} reseñas)
+        <span className="text-xs text-zinc-400 font-medium">
+          <span className="text-white font-bold">{rating.toFixed(1)}</span> ({count})
         </span>
       )}
       {showCount && count === 0 && (
-        <span className="text-xs text-slate-400">Sin calificaciones</span>
+        <span className="text-xs text-zinc-600">Sin calificar</span>
       )}
     </div>
   );

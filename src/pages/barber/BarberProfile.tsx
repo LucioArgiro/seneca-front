@@ -1,18 +1,27 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth';
 import { useResenas } from '../../hooks/useResenas';
 import { useBarber } from '../../hooks/useBarber';
 import { Navbar } from '../../components/Navbar';
-import { Star, MapPin, Calendar, User, MessageCircle, ArrowLeft } from 'lucide-react';
 import { StarDisplay } from '../../components/StarDisplay';
+import { MapPin, Calendar, User, MessageCircle, ArrowLeft, Scissors } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
-
+// Componente interno para el INPUT de estrellas (Clickable) - Estilo Luxury
 const StarRatingInput = ({ rating, setRating, disabled }: { rating: number, setRating: (r: number) => void, disabled: boolean }) => {
   return (
-    <div className="flex gap-1">
+    <div className="flex gap-1.5">
       {[1, 2, 3, 4, 5].map((star) => (
-        <button key={star} type="button" disabled={disabled} onClick={() => setRating(star)} className={`text-2xl transition-transform ${star <= rating ? 'text-yellow-400' : 'text-slate-200'} ${!disabled && 'hover:scale-110'}`}>★</button>
+        <button
+          key={star}
+          type="button"
+          disabled={disabled}
+          onClick={() => setRating(star)}
+          className={`text-2xl transition-all duration-300 ${star <= rating ? 'text-[#C9A227] scale-110 drop-shadow-[0_0_8px_rgba(201,162,39,0.6)]' : 'text-zinc-700 hover:text-zinc-500'} ${!disabled && 'hover:scale-110'}`}
+        >
+          ★
+        </button>
       ))}
     </div>
   );
@@ -22,194 +31,237 @@ export const BarberProfile = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { usuario, token } = useAuthStore();
+
   const [calificacion, setCalificacion] = useState(0);
   const [comentario, setComentario] = useState('');
+
+  // 1. Cargar datos
   const { data: barbero, isLoading: loadingBarber } = useBarber(id!);
   const { data: resenas, isLoading: loadingReviews, createResena, isCreating } = useResenas(id!);
+
   const userHasReviewed = resenas?.some((r) => r.cliente?.usuario?.id === usuario?.id);
+
+  // 2. Calcular Promedio
+  const stats = useMemo(() => {
+    if (!resenas || resenas.length === 0) return { promedio: 0, total: 0 };
+    const suma = resenas.reduce((acc, r) => acc + Number(r.calificacion || 0), 0);
+    return {
+      promedio: suma / resenas.length,
+      total: resenas.length
+    };
+  }, [resenas]);
+
+  const displayPromedio = barbero?.promedio || stats.promedio;
+  const displayTotal = barbero?.cantidadResenas || stats.total;
+
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (calificacion === 0) return alert('Por favor selecciona una calificación');
+    if (calificacion === 0) return toast.error('Selecciona las estrellas');
 
     createResena({
       barberoId: id!,
-      calificacion,
+      calificacion: Number(calificacion),
       comentario
     }, {
       onSuccess: () => {
         setComentario('');
         setCalificacion(0);
-        // toast.success("¡Gracias por tu opinión!");
+        toast.success("¡Opinión publicada!");
       }
     });
   };
 
-  if (loadingBarber) return <div className="flex justify-center p-20"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div></div>;
+  if (loadingBarber) return <div className="min-h-screen bg-[#0a0a0a] flex justify-center items-center"><div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#C9A227]"></div></div>;
 
-  if (!barbero) return (
-    <div className="text-center p-20">
-      <h2 className="text-2xl font-bold text-slate-800">Barbero no encontrado</h2>
-      <p className="text-slate-500">El perfil que buscas no existe o ha sido desactivado.</p>
-    </div>
-  );
+  if (!barbero) return <div className="min-h-screen bg-[#0a0a0a] flex justify-center items-center text-zinc-500">Barbero no encontrado</div>;
 
   return (
-    <>
+    <div className="min-h-screen bg-[#0a0a0a] text-zinc-200 font-sans">
       <Navbar />
-      <button onClick={() => navigate(-1)} className="group flex items-center px-6 py-3 text-slate-400 hover:text-blue-600 font-medium mb-6 transition-colors">
-        <ArrowLeft size={20} className="mr-1 transition-transform group-hover:-translate-x-1" /> Volver al panel</button>
-      <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-6 pb-20">
+
+      <div className="max-w-5xl mx-auto px-4 md:px-8 pt-24">
+        <button onClick={() => navigate(-1)} className="group flex items-center text-zinc-500 hover:text-[#C9A227] font-bold uppercase tracking-widest text-xs transition-colors">
+          <ArrowLeft size={16} className="mr-2 transition-transform group-hover:-translate-x-1" /> Volver
+        </button>
+      </div>
+
+      <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-8 pb-24">
 
         {/* --- HEADER DEL PERFIL --- */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-          {/* Banner Decorativo */}
-          <div className="bg-gradient-to-r from-slate-900 to-slate-800 h-30 w-full relative">
-            <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+        <div className="bg-[#131313] rounded-3xl shadow-2xl shadow-black border border-white/5 overflow-hidden relative group">
+
+          {/* Fondo decorativo */}
+          <div className="h-40 w-full relative overflow-hidden">
+            <div className="absolute inset-0 bg-granular-dark"></div>
+            <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-[#131313] to-transparent"></div>
           </div>
 
-          <div className="px-6 md:px-10 pb-10">
-            <div className="relative flex flex-col md:flex-row justify-between items-end -mt-16 mb-6 gap-4">
+          <div className="px-6 md:px-10 pb-10 relative">
+            <div className="flex flex-col md:flex-row justify-between items-end -mt-20 mb-8 gap-6">
 
-              {/* Foto y Datos Principales */}
-              <div className="flex flex-col md:flex-row items-end md:items-end gap-6 text-center md:text-left w-full md:w-auto">
-                <div className="bg-white p-1.5 rounded-3xl shadow-lg mx-auto md:mx-0, mt-15">
-                  {barbero.fotoUrl ? (
-                    <img src={barbero.fotoUrl} alt="Perfil" className="w-32 h-32 rounded-2xl object-cover bg-slate-100" />
-                  ) : (
-                    <div className="w-32 h-32 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-300">
-                      <User size={48} />
-                    </div>
-                  )}
+              <div className="flex flex-col md:flex-row items-end gap-6 text-center md:text-left w-full md:w-auto">
+                {/* Avatar con borde dorado */}
+                <div className="p-1.5 rounded-full bg-[#131313] border border-[#C9A227]/30 shadow-[0_0_30px_rgba(201,162,39,0.15)] mx-auto md:mx-0 relative group/avatar">
+                  <div className="w-36 h-36 rounded-full overflow-hidden bg-[#0a0a0a] relative">
+                    {barbero.fotoUrl ? (
+                      <img src={barbero.fotoUrl} alt="Perfil" className="w-full h-full object-cover transition-transform duration-700 group-hover/avatar:scale-110" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-zinc-700"><User size={48} /></div>
+                    )}
+                  </div>
+                  {/* Badge de Verificado/Profesional */}
+                  <div className="absolute bottom-2 right-2 bg-[#C9A227] text-[#131313] p-1.5 rounded-full border-4 border-[#131313]" title="Profesional Verificado">
+                    <Scissors size={14} fill="#131313" />
+                  </div>
                 </div>
-                <div className="mb-2">
-                  <h1 className="text-3xl font-bold text-slate-900 leading-tight ">{barbero.usuario?.nombre} {barbero.usuario?.apellido || "Profesional"}</h1>
-                  <p className="text-blue-600 font-bold text-lg mb-2">{barbero.especialidad || 'Estilista Profesional'}</p>
-                  <div className="mb-3"><StarDisplay rating={barbero.promedio || 0} count={barbero.cantidadResenas || 0} size={20} />
+
+                <div className="mb-2 w-full md:w-auto">
+                  {/* NOMBRE */}
+                  <h1 className="text-3xl md:text-4xl font-black text-white leading-tight tracking-tight mb-1 text-center md:text-left">
+                    {barbero.usuario?.nombre} <span className="text-[#C9A227]">{barbero.usuario?.apellido}</span>
+                  </h1>
+
+                  {/* ESPECIALIDAD - Centrado en móvil con justify-center */}
+                  <p className="text-zinc-400 font-medium text-lg mb-3 flex items-center justify-center md:justify-start gap-2">
+                    <span className="w-8 h-[1px] bg-[#C9A227]"></span>
+                    {barbero.especialidad || 'Estilista Profesional'}
+                  </p>
+
+                  {/* ⭐ ESTRELLAS HEADER - Centrado en móvil */}
+                  <div className="mb-4 flex justify-center md:justify-start">
+                    <StarDisplay rating={displayPromedio} count={displayTotal} size={20} />
                   </div>
 
+                  {/* UBICACIÓN - Centrado en móvil */}
                   {(barbero.provincia || barbero.pais) && (
-                    <div className="flex items-center justify-center md:justify-start gap-1 text-slate-500 text-sm mt-1">
-                      <MapPin size={14} />
-                      <span>{barbero.provincia}{barbero.pais ? `, ${barbero.pais}` : ''}</span>
+                    <div className="flex items-center justify-center md:justify-start gap-1.5 text-zinc-500 text-xs font-bold uppercase tracking-wider">
+                      <MapPin size={14} className="text-[#C9A227]" />
+                      <span>{barbero.provincia}</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Botón de Reserva */}
-              <button onClick={() => navigate('/reservar', { state: { barberId: barbero.id } })} className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl font-bold shadow-lg shadow-blue-200 transition-all transform active:scale-95 flex items-center justify-center gap-2"><Calendar size={20} />Reservar Cita Ahora</button>
+              {/* Botón Reservar */}
+              <button
+                onClick={() => navigate('/reservar', { state: { barberId: barbero.id } })}
+                className="w-full md:w-auto bg-[#C9A227] hover:bg-[#131313] text-[#131313] hover:text-[#C9A227] border border-transparent hover:border-[#C9A227]/50 px-8 py-4 rounded-xl font-black uppercase tracking-widest transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2"
+              >
+                <Calendar size={18} strokeWidth={2.5} /> Reservar Turno
+              </button>
             </div>
 
-            {/* Biografía */}
             {barbero.biografia && (
-              <div className="mt-8 pt-8 border-t border-slate-100">
-                <h3 className="font-bold text-slate-900 mb-3 text-lg">Sobre mí</h3>
-                <p className="text-slate-600 leading-relaxed text-lg">{barbero.biografia}</p>
+              <div className="mt-8 pt-8 border-t border-white/5">
+                <h3 className="font-bold text-[#C9A227] mb-3 text-xs uppercase tracking-widest text-center md:text-left">Biografía</h3>
+                <p className="text-zinc-400 leading-relaxed text-base md:text-lg max-w-3xl text-center md:text-left">{barbero.biografia}</p>
               </div>
             )}
           </div>
         </div>
 
         {/* --- SECCIÓN DE OPINIONES --- */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 md:p-10">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="bg-yellow-100 p-2 rounded-lg text-yellow-600">
-              <Star className="fill-current" size={24} />
+        <div className="bg-[#131313] rounded-3xl shadow-xl shadow-black/50 border border-white/5 p-6 md:p-10">
+          <div className="flex items-center gap-4 mb-10 border-b border-white/5 pb-6 justify-center md:justify-start">
+          <div className="bg-[#131313] p-3 rounded-xl text-[#C9A227] hover:bg-[#C9A227] hover:text-[#131313]">
+              <MessageCircle size={24} />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900">Opiniones de Clientes</h2>
+            <div className="text-center md:text-left">
+              <h2 className="text-2xl font-black text-white tracking-tight">Opiniones de Clientes</h2>
+              <p className="text-zinc-500 text-sm">Lo que dicen sobre {barbero.usuario?.nombre}</p>
+            </div>
           </div>
 
           {/* Formulario de Reseña */}
-          {token && !userHasReviewed ? (
-            <form onSubmit={handleReviewSubmit} className="bg-slate-50 p-6 rounded-2xl mb-10 border border-slate-200">
-              <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <MessageCircle size={18} /> Deja tu comentario
+          {token && !userHasReviewed && (
+            <form onSubmit={handleReviewSubmit} className="bg-[#0a0a0a] p-6 md:p-8 rounded-2xl mb-12 border border-white/5 relative overflow-hidden group/form">
+              <div className="absolute top-0 left-0 w-1 h-full bg-[#C9A227] opacity-50"></div>
+
+              <h3 className="font-bold text-zinc-300 mb-6 flex items-center gap-2 justify-center md:justify-start">
+                Dejanos tu experiencia
               </h3>
 
-              <div className="mb-4">
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Calificación</label>
-                <StarRatingInput rating={calificacion} setRating={setCalificacion} disabled={isCreating} />
+              <div className="mb-6">
+                <label className="block text-[10px] font-bold text-[#C9A227] uppercase tracking-widest mb-3 text-center md:text-left">Tu Calificación</label>
+                <div className="flex justify-center md:justify-start">
+                  <StarRatingInput rating={calificacion} setRating={setCalificacion} disabled={isCreating} />
+                </div>
               </div>
 
-              <div className="mb-4">
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Tu experiencia</label>
+              <div className="mb-6">
+                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3 text-center md:text-left">Tu Comentario</label>
                 <textarea
                   value={comentario}
                   onChange={(e) => setComentario(e.target.value)}
                   placeholder="¿Qué te pareció el servicio? Cuéntanos..."
-                  className="w-full p-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none resize-none h-32 bg-white"
+                  className="w-full p-4 rounded-xl bg-[#131313] border border-white/10 text-white placeholder-zinc-600 focus:border-[#C9A227] focus:ring-1 focus:ring-[#C9A227] outline-none resize-none h-32 transition-all"
                   disabled={isCreating}
                 />
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-center md:justify-end">
                 <button
                   type="submit"
                   disabled={isCreating || calificacion === 0}
-                  className="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="bg-white text-black px-8 py-3 rounded-xl font-bold hover:bg-zinc-200 disabled:opacity-50 transition-all uppercase tracking-wide text-sm w-full md:w-auto"
                 >
                   {isCreating ? 'Publicando...' : 'Publicar Opinión'}
                 </button>
               </div>
             </form>
-          ) : null}
-
-          {/* Mensajes de Estado (No logueado o Ya comentó) */}
-          {!token && (
-            <div className="bg-blue-50 text-blue-800 p-4 rounded-xl mb-8 text-center border border-blue-100">
-              <span className="font-bold">¿Quieres opinar?</span> Inicia sesión para dejar una reseña.
-            </div>
-          )}
-          {userHasReviewed && (
-            <div className="bg-green-50 text-green-700 p-4 rounded-xl mb-8 text-center border border-green-100 font-medium">
-              ✓ Gracias por compartir tu experiencia. Ya has opinado sobre este profesional.
-            </div>
           )}
 
           {/* Lista de Reseñas */}
           <div className="space-y-8">
             {loadingReviews ? (
-              <div className="space-y-4">
-                {[1, 2].map(i => <div key={i} className="h-24 bg-slate-50 rounded-xl animate-pulse"></div>)}
+              <div className="text-center py-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#C9A227] mx-auto mb-2"></div>
+                <span className="text-zinc-500 text-sm">Cargando opiniones...</span>
               </div>
             ) : resenas?.length === 0 ? (
-              <div className="text-center py-12 text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                <Star size={40} className="mx-auto mb-3 text-slate-300" />
-                <p>Aún no hay opiniones.</p>
-                <p className="text-sm">¡Sé el primero en reservar y contar tu experiencia!</p>
+              <div className="text-center py-16 bg-[#1A1A1A]/50 rounded-2xl border border-dashed border-zinc-800">
+                <MessageCircle size={40} className="mx-auto text-zinc-700 mb-3" />
+                <p className="text-zinc-500">Aún no hay opiniones para este profesional.</p>
               </div>
             ) : (
               resenas?.map((review) => (
-                <div key={review.id} className="border-b border-slate-100 last:border-0 pb-8 last:pb-0">
+                <div key={review.id} className="border-b border-white/5 last:border-0 pb-8 last:pb-0 group/review transition-colors hover:bg-white/[0.02] p-4 -mx-4 rounded-xl">
                   <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-sm border border-slate-200">
-                        {review.cliente?.usuario?.nombre?.charAt(0) || "U"}
+                    <div className="flex items-center gap-4">
+                      {/* Avatar Cliente */}
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1A1A1A] to-[#0a0a0a] border border-[#C9A227]/50 flex items-center justify-center text-zinc-400 font-bold text-sm shadow-md">
+                        {review.cliente?.usuario?.nombre?.charAt(0) || "C"}
                       </div>
                       <div>
-                        <p className="font-bold text-slate-900 text-sm">
-                          {review.cliente?.usuario?.nombre + ' ' + review.cliente?.usuario?.apellido || "Usuario Anónimo"}
+                        <p className="font-bold text-zinc-200 text-sm flex items-center gap-2">
+                          {review.cliente?.usuario?.nombre} {review.cliente?.usuario?.apellido}
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-zinc-500 font-normal">Cliente</span>
                         </p>
-                        <p className="text-xs text-slate-400 font-medium">
-                          {new Date(review.fecha).toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider mt-0.5">
+                          {new Date(review.fecha).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-0.5 text-yellow-400 text-sm">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <span key={i}>{i < review.calificacion ? '★' : '☆'}</span>
-                      ))}
+
+                    {/* Estrellas Estáticas */}
+                    <div className="bg-[#0a0a0a] px-2 py-1 rounded-lg border border-white/5">
+                      <StarDisplay
+                        rating={Number(review.calificacion)}
+                        showCount={false}
+                        size={14}
+                      />
                     </div>
                   </div>
-                  <p className="text-slate-600 leading-relaxed pl-[52px]">{review.comentario}</p>
+                  <p className="text-zinc-400 leading-relaxed pl-[56px] text-sm md:text-base relative">
+                    {review.comentario}
+                  </p>
                 </div>
               ))
             )}
           </div>
         </div>
       </div>
-
-    </>
+    </div>
   );
 };
 
