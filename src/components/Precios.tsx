@@ -155,7 +155,7 @@ export const Precios = () => {
 
                   {/* BOTÓN DE ACCIÓN */}
                   <button
-                    onClick={() => navigate('/login')}
+                    onClick={() => navigate('/reservar', { state: { servicioId: servicio.id } })}
                     className={`w-full py-4 rounded-xl font-black transition-all duration-300 flex items-center justify-center gap-2 text-xs uppercase tracking-[0.15em] 
                     ${isPopular
                         ? 'bg-[#C9A227] text-[#131313] hover:bg-[#b88d15] shadow-[0_0_20px_rgba(201,162,39,0.2)] hover:scale-[1.02]'

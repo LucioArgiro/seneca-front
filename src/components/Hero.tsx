@@ -19,7 +19,7 @@ export const Hero = () => {
         <div className="flex flex-row gap-3 md:gap-8 items-center justify-center w-full max-w-lg md:max-w-none">
           
           {/* BOTÓN 1: RESERVAR (Principal) */}
-          <button onClick={() => navigate('/login')} className="flex-1 md:flex-none md:w-auto bg-[#C9A227] text-[#131313] border border-[#C9A227] hover:bg-[#131313] hover:text-[#C9A227] px-2 py-3 md:px-8 md:py-4 rounded-xl font-black uppercase tracking-widest transition-all duration-300 transform hover:-translate-y-1 text-[11px] xs:text-xs md:text-base whitespace-nowrap" data-aos="fade-right" data-aos-delay="1000" data-aos-duration="1000">Reservar Ahora</button>
+          <button onClick={() => navigate('/reservar')} className="flex-1 md:flex-none md:w-auto bg-[#C9A227] text-[#131313] border border-[#C9A227] hover:bg-[#131313] hover:text-[#C9A227] px-2 py-3 md:px-8 md:py-4 rounded-xl font-black uppercase tracking-widest transition-all duration-300 transform hover:-translate-y-1 text-[11px] xs:text-xs md:text-base whitespace-nowrap" data-aos="fade-right" data-aos-delay="1000" data-aos-duration="1000">Reservar Ahora</button>
 
           {/* BOTÓN 2: CONTACTO (Secundario) */}
           <button onClick={() => navigate('/Contacto')} className="flex-1 md:flex-none md:w-auto bg-[#131313] text-[#C9A227] border border-[#C9A227] hover:text-[#131313] hover:bg-[#C9A227] px-2 py-3 md:px-8 md:py-4 rounded-xl font-bold uppercase tracking-widest transition-all duration-300 text-[11px] xs:text-xs md:text-base whitespace-nowrap" data-aos="fade-left" data-aos-delay="800" data-aos-duration="1000">Contactanos</button>
