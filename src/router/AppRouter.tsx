@@ -48,9 +48,9 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
 
 const getHomeRoute = (role?: string) => {
     switch (role) {
-        case 'ADMIN': return '/admin/agenda';
+        case 'ADMIN': return '/admin/dashboard';
         case 'BARBER': return '/barber/agenda';
-        case 'CLIENT': return '/turnos';
+        case 'CLIENT': return '/';
         default: return '/login';
     }
 };
@@ -66,8 +66,6 @@ export default function AppRouter() {
             <Route path='/contacto' element={<Contacto />} />
             <Route path="/barberos/:id" element={<BarberProfile />} />
             <Route path='/auth/recuperar' element={<Recuperar />} />
-
-            {/* Si ya está logueado, no puede ver Login ni Register */}
             <Route path="/login" element={!isAuth ? <Login /> : <Navigate to={getHomeRoute(usuario?.role)} replace />} />
             <Route path="/register" element={!isAuth ? <Register /> : <Navigate to={getHomeRoute(usuario?.role)} replace />} />
 
@@ -103,7 +101,7 @@ export default function AppRouter() {
                     <AdminLayout />
                 </ProtectedRoute>
             }>
-                <Route index element={<Navigate to="agenda" replace />} />
+                <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="agenda" element={<AdminAgendaGlobal />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="servicios" element={<AdminServicios />} />

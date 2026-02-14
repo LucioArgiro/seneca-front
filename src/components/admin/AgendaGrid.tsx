@@ -207,7 +207,7 @@ export const AgendaGrid = ({ barberos, turnos, bloqueos, onSlotClick, onDeleteBl
 
                 return (
                   <div key={bloqueo.id} style={{top: `${finalTop}px`, height: `${finalHeight}px`,left: '4px', right: '4px', position: 'absolute', backgroundImage: 'repeating-linear-gradient(45deg, rgba(239, 68, 68, 0.05) 0px, rgba(239, 68, 68, 0.05) 8px, rgba(239, 68, 68, 0.1) 10px, rgba(239, 68, 68, 0.1) 20px)'}} onClick={(e) => handleDeleteRequest(bloqueo.id, e)} className="group z-10 flex flex-col items-center justify-center rounded-lg border cursor-pointer border-red-500/30 bg-[#1A1A1A] hover:border-red-500/60 shadow-lg shadow-black/40 transition-all duration-200">
-                    <div className="bg-[#131313]/90 px-3 py-1 rounded-full border border-red-500/20 flex items-center gap-2 backdrop-blur-sm shadow-sm scale-90 group-hover:scale-100 transition-transform"><Lock size={12} className="text-red-500"/><span className="text-[9px] font-bold text-red-400 uppercase tracking-wider truncate max-w-[100px]">{bloqueo.motivo || 'OCUPADO'}</span>
+                    <div className="bg-[#131313]/90 px-3 py-1 rounded-full border border-red-500/20 flex items-center gap-2 shadow-sm scale-90 group-hover:scale-100 transition-transform"><Lock size={12} className="text-red-500"/><span className="text-[9px] font-bold text-red-400 uppercase tracking-wider truncate max-w-[100px]">{bloqueo.motivo || 'OCUPADO'}</span>
                     </div>
 
                     <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 scale-75 group-hover:scale-100"><div className="bg-red-900 text-white rounded-full p-1 border border-red-500 shadow-md hover:bg-red-700"><X size={10} strokeWidth={3} /></div>
@@ -222,7 +222,7 @@ export const AgendaGrid = ({ barberos, turnos, bloqueos, onSlotClick, onDeleteBl
 
       {/* OVERLAY DE CERRADO (LUXURY NEGRO) */}
       {bloqueos.find(b => b.esGeneral) && (
-        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center ml-0 md:ml-64 mt-16 p-4">
+        <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center ml-0 md:ml-64 mt-16 p-4">
           <div className="bg-[#0a0a0a] p-8 md:p-10 rounded-2xl border border-[#D4AF37]/20 text-center shadow-2xl shadow-black max-w-md w-full relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent opacity-40"></div>
 

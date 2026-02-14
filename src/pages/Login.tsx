@@ -53,7 +53,7 @@ const Login = () => {
       </Link>
 
       {/* 2. TARJETA DE LOGIN LUXURY */}
-      <div className="relative z-10 w-full max-w-md bg-[#131313]/80 backdrop-blur-xl p-8 md:p-10 rounded-3xl border border-white/5 shadow-2xl shadow-black animate-in fade-in zoom-in-95 duration-500">
+      <div className="relative z-10 w-full max-w-md bg-[#131313]/80 p-8 md:p-10 rounded-3xl border border-white/5 shadow-2xl shadow-black animate-in fade-in zoom-in-95 duration-500">
 
         {/* Icono Superior */}
         <div className="flex justify-center mb-8">

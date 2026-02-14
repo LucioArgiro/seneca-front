@@ -1,46 +1,66 @@
 // src/hooks/useTurnos.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { turnosApi, type TurnoResponse } from '../api/turnos';
+import { useMemo } from 'react';
 
 export const useMisTurnos = () => {
   const queryClient = useQueryClient();
 
-  // 1. QUERY: Obtener turnos
+  // 1. QUERY: Obtener todos los turnos
   const query = useQuery({
     queryKey: ['mis-turnos'],
     queryFn: turnosApi.getMyTurnos,
-    staleTime: 1000 * 60 * 5, // Los datos se consideran frescos por 5 minutos
+    staleTime: 1000 * 60 * 5, // 5 minutos de caché
+    retry: 1,
   });
 
   // 2. MUTATION: Cancelar turno
   const cancelarMutation = useMutation({
     mutationFn: turnosApi.cancelarTurno,
     onSuccess: () => {
-      // Al cancelar, recargamos la lista automáticamente
       queryClient.invalidateQueries({ queryKey: ['mis-turnos'] });
-      alert('Turno cancelado correctamente');
     },
-    onError: () => {
-      alert('Hubo un error al cancelar el turno');
+    onError: (error) => {
+      console.error("Error al cancelar turno:", error);
     }
   });
 
-  // 3. Lógica derivada (Próximos vs Historial)
-  const now = new Date();
-  const turnos = query.data || [];
+  // 3. LÓGICA DE FILTRADO (Centralizada aquí)
+  const { proximos, historial } = useMemo(() => {
+    const todos = query.data || [];
+    const now = new Date();
 
-  const proximos = turnos
-    .filter((t: TurnoResponse) => new Date(t.fecha) >= now && t.estado !== 'CANCELADO')
-    .sort((a: TurnoResponse, b: TurnoResponse) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
+    // A. PRÓXIMOS (Futuros y Activos)
+    const prox = todos
+      .filter((t: TurnoResponse) => {
+        const fechaTurno = new Date(t.fecha);
+        const estado = t.estado ? t.estado.toUpperCase() : '';
+        // Solo PENDIENTE o CONFIRMADO y que sean FUTUROS
+        return fechaTurno >= now && (estado === 'PENDIENTE' || estado === 'CONFIRMADO');
+      })
+      .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime()); // Orden Ascendente
 
-  const historial = turnos
-    .filter((t: TurnoResponse) => new Date(t.fecha) < now || t.estado === 'CANCELADO')
-    .sort((a: TurnoResponse, b: TurnoResponse) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+    // B. HISTORIAL (Pasados, Cancelados o Completados)
+    const hist = todos
+      .filter((t: TurnoResponse) => {
+        const fechaTurno = new Date(t.fecha);
+        const estado = t.estado ? t.estado.toUpperCase() : '';
+        
+        const esPasado = fechaTurno < now;
+        const esCancelado = estado === 'CANCELADO';
+        const esCompletado = estado === 'COMPLETADO';
+
+        return esPasado || esCancelado || esCompletado;
+      })
+      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()); // Orden Descendente
+
+    return { proximos: prox, historial: hist };
+  }, [query.data]);
 
   return {
-    turnos,
-    proximos,
-    historial,
+    turnos: query.data || [],
+    proximos,   // Ya viene filtrado
+    historial,  // Ya viene filtrado
     isLoading: query.isLoading,
     isError: query.isError,
     cancelarTurno: cancelarMutation.mutate,

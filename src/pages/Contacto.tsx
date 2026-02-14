@@ -162,7 +162,7 @@ export const Contacto = () => {
               </div>
 
               {/* Tarjeta Flotante de Dirección */}
-              <div className="absolute top-6 left-6 right-6 sm:left-auto sm:right-6 sm:w-72 bg-[#131313]/90 backdrop-blur-md p-4 rounded-xl border border-[#C9A227]/20 shadow-xl z-[400] flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-700">
+              <div className="absolute top-6 left-6 right-6 sm:left-auto sm:right-6 sm:w-72 bg-[#131313]/90 p-4 rounded-xl border border-[#C9A227]/20 shadow-xl z-[15] flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-700">
                 <div className="p-2.5 bg-[#0a0a0a] rounded-lg text-[#C9A227] border border-[#333] shrink-0"><MapPin size={20} /></div>
                 <div>
                   <p className="text-[#C9A227] text-[10px] font-bold uppercase tracking-widest mb-1">Nuestra Ubicación</p>

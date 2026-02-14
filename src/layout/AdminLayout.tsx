@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth';
-import { Calendar, Scissors, LogOut, History, Menu, X, Users, Briefcase, Wallet, Settings } from 'lucide-react';
+import { Calendar, Scissors, LogOut, History, Menu, X, Users, Briefcase, Wallet, Settings, LayoutDashboard } from 'lucide-react';
 
 const AdminLayout = () => {
   const { usuario, logout } = useAuthStore();
@@ -38,7 +38,7 @@ const AdminLayout = () => {
       {/* --- 2. SIDEBAR --- */}
       <aside className={`
         fixed inset-y-0 left-0 w-72 bg-granular-dark border-r border-slate-800 flex flex-col z-30 transition-transform duration-300 ease-in-out shadow-2xl ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}>
-       {/* LOGO */}
+        {/* LOGO */}
         <div className="h-24 flex items-center justify-between px-8 border-b border-slate-800 shrink-0">
           <div className="flex items-center gap-3 text-2xl font-black text-white tracking-tight">
             <div className="bg-gradient-to-br from-[#C9A227] to-[#B45309] p-2.5 rounded-xl shadow-lg shadow-[#C9A227]/20 transform rotate-3">
@@ -58,6 +58,9 @@ const AdminLayout = () => {
         <nav className="flex-1 px-4 py-8 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <p className="px-4 text-[10px] font-bold text-[#C9A227] uppercase tracking-[0.2em] mb-4 opacity-90">Gestión</p>
 
+          <Link to="/admin/dashboard" className={getLinkClasses('/admin/dashboard')}>
+            <LayoutDashboard size={20} /> Dashboard
+          </Link>
           <Link to="/admin/agenda" className={getLinkClasses('/admin/agenda')}>
             <Calendar size={20} /> Agenda Global
           </Link>
@@ -89,7 +92,7 @@ const AdminLayout = () => {
           <div className="bg-[#131313] rounded-xl p-4 border border-slate-700 shadow-lg relative group">
             {/* Brillo decorativo */}
             <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#C9A227/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            
+
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-[#1e1e1e] border border-[#D4AF37]/50 flex items-center justify-center text-[#C9A227] font-bold shadow-md shrink-0">{usuario?.nombre?.charAt(0).toUpperCase() || 'A'}
               </div>

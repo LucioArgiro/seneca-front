@@ -32,7 +32,7 @@ export const useReservaActions = () => {
       if (result?.redirecting) return;
       queryClient.invalidateQueries({ queryKey: ['mis-turnos'] });
       toast.success('¡Reserva confirmada con éxito!');
-      navigate('/panel?status=success');
+      navigate('/turnos');
     },
     onError: (error: any) => {
       console.error("Error en reserva:", error);

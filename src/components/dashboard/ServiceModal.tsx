@@ -54,7 +54,6 @@ export const ServiceModal = ({ isOpen, onClose, onSave, servicio }: ServiceModal
   const labelClass = "block text-zinc-400 text-xs font-bold uppercase mb-2 ml-1 tracking-wider";
 
   return (
-    // Overlay Oscuro con Blur
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 ">
 
       {/* Modal Container: Carbón #131313 */}

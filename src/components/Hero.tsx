@@ -10,15 +10,11 @@ export const Hero = () => {
       {/* Le agregamos una animación sutil de zoom-out para que la imagen "respire" al cargar */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat" 
-        style={{backgroundImage: "url('https://res.cloudinary.com/dn9k3xvji/image/upload/v1770747163/lucio_t3qzkn.png')"}}
+        style={{backgroundImage: "url('https://res.cloudinary.com/dn9k3xvji/image/upload/v1771033251/Sin_t%C3%ADtulo_uh5azg.png')"}}
         data-aos="zoom-out"
-        data-aos-duration="2000" // Animación lenta de fondo (2 segundos)
+        data-aos-duration="2000"
       ></div>
-
-      {/* Degradado opcional para mejorar lectura de botones si la imagen es clara */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-
-      {/* 3. CONTENIDO (Botones) */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
       <div className="relative z-10 w-full max-w-4xl px-4 flex flex-col items-center">
         <div className="flex flex-row gap-3 md:gap-8 items-center justify-center w-full max-w-lg md:max-w-none">
           

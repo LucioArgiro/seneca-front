@@ -27,7 +27,7 @@ export const AdminEditBarber = () => {
     sexo: 'M',
     biografia: '',
     especialidad: '',
-    precioSenia: 2000,
+    precioSenia: 2000, // Inicialmente un número
     aliasMp: '',
     imagenQrUrl: ''
   });
@@ -88,11 +88,28 @@ export const AdminEditBarber = () => {
     },
   });
 
+  // 👇 --- AQUÍ ESTÁ EL CAMBIO --- 👇
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    const isNumberField = name === 'edad' || name === 'precioSenia';
-    setForm({ ...form, [name]: isNumberField ? Number(value) : value });
+
+    // Identificamos los campos que deben ser numéricos
+    const numberFields = ['edad', 'precioSenia'];
+
+    if (numberFields.includes(name)) {
+      // Si el valor es vacío (el usuario borró todo), guardamos string vacío
+      // Esto permite que el input quede limpio y sin el '0'
+      if (value === '') {
+        setForm({ ...form, [name]: '' });
+      } else {
+        // Si escribe un número, lo parseamos para evitar '05'
+        setForm({ ...form, [name]: parseFloat(value) });
+      }
+    } else {
+      // Comportamiento normal para texto
+      setForm({ ...form, [name]: value });
+    }
   };
+  // 👆 ---------------------------- 👆
 
   // 4. FUNCIONES DE SUBIDA DE QR
   const handleQrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,7 +148,15 @@ export const AdminEditBarber = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const payload: any = { ...form, horarios };
+
+    // 👇 Validamos que si quedó en '' se envíe un 0 al backend
+    const payload: any = {
+      ...form,
+      precioSenia: Number(form.precioSenia) || 0,
+      edad: Number(form.edad) || 18,
+      horarios
+    };
+
     if (!payload.password) delete payload.password;
 
     toast.promise(
@@ -405,10 +430,10 @@ export const AdminEditBarber = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-zinc-500 font-medium uppercase tracking-wide">Agenda Actual</span>
                   <span className={`font-bold px-2 py-1 rounded border uppercase tracking-wider
-                                        ${horarios.length > 0
+                                                ${horarios.length > 0
                       ? 'bg-[#C9A227]/10 text-[#C9A227] border-[#C9A227]/30'
                       : 'bg-red-900/20 text-red-500 border-red-900/30'}
-                                    `}>
+                                                `}>
                     {agendaLabel}
                   </span>
                 </div>
