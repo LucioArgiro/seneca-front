@@ -66,7 +66,7 @@ export const AgendaGrid = ({ barberos, turnos, bloqueos, onSlotClick, onDeleteBl
           >
             Cancelar
           </button>
-          <button onClick={() => {onDeleteBloqueo(bloqueoId); toast.dismiss(t.id);}}className="px-3 py-1.5 text-xs font-bold bg-red-600 hover:bg-red-500 text-white rounded-lg shadow-lg shadow-red-900/20 transition-all flex items-center gap-1"><Trash2 size={12} /> Confirmar</button>
+          <button onClick={() => { onDeleteBloqueo(bloqueoId); toast.dismiss(t.id); }} className="px-3 py-1.5 text-xs font-bold bg-red-600 hover:bg-red-500 text-white rounded-lg shadow-lg shadow-red-900/20 transition-all flex items-center gap-1"><Trash2 size={12} /> Confirmar</button>
         </div>
       </div>
     ), {
@@ -206,8 +206,8 @@ export const AgendaGrid = ({ barberos, turnos, bloqueos, onSlotClick, onDeleteBl
                 const finalHeight = rawHeight - (gap * 2);
 
                 return (
-                  <div key={bloqueo.id} style={{top: `${finalTop}px`, height: `${finalHeight}px`,left: '4px', right: '4px', position: 'absolute', backgroundImage: 'repeating-linear-gradient(45deg, rgba(239, 68, 68, 0.05) 0px, rgba(239, 68, 68, 0.05) 8px, rgba(239, 68, 68, 0.1) 10px, rgba(239, 68, 68, 0.1) 20px)'}} onClick={(e) => handleDeleteRequest(bloqueo.id, e)} className="group z-10 flex flex-col items-center justify-center rounded-lg border cursor-pointer border-red-500/30 bg-[#1A1A1A] hover:border-red-500/60 shadow-lg shadow-black/40 transition-all duration-200">
-                    <div className="bg-[#131313]/90 px-3 py-1 rounded-full border border-red-500/20 flex items-center gap-2 shadow-sm scale-90 group-hover:scale-100 transition-transform"><Lock size={12} className="text-red-500"/><span className="text-[9px] font-bold text-red-400 uppercase tracking-wider truncate max-w-[100px]">{bloqueo.motivo || 'OCUPADO'}</span>
+                  <div key={bloqueo.id} style={{ top: `${finalTop}px`, height: `${finalHeight}px`, left: '4px', right: '4px', position: 'absolute', backgroundImage: 'repeating-linear-gradient(45deg, rgba(239, 68, 68, 0.05) 0px, rgba(239, 68, 68, 0.05) 8px, rgba(239, 68, 68, 0.1) 10px, rgba(239, 68, 68, 0.1) 20px)' }} onClick={(e) => handleDeleteRequest(bloqueo.id, e)} className="group z-10 flex flex-col items-center justify-center rounded-lg border cursor-pointer border-red-500/30 bg-[#1A1A1A] hover:border-red-500/60 shadow-lg shadow-black/40 transition-all duration-200">
+                    <div className="bg-[#131313]/90 px-3 py-1 rounded-full border border-red-500/20 flex items-center gap-2 shadow-sm scale-90 group-hover:scale-100 transition-transform"><Lock size={12} className="text-red-500" /><span className="text-[9px] font-bold text-red-400 uppercase tracking-wider truncate max-w-[100px]">{bloqueo.motivo || 'OCUPADO'}</span>
                     </div>
 
                     <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 scale-75 group-hover:scale-100"><div className="bg-red-900 text-white rounded-full p-1 border border-red-500 shadow-md hover:bg-red-700"><X size={10} strokeWidth={3} /></div>
@@ -222,18 +222,40 @@ export const AgendaGrid = ({ barberos, turnos, bloqueos, onSlotClick, onDeleteBl
 
       {/* OVERLAY DE CERRADO (LUXURY NEGRO) */}
       {bloqueos.find(b => b.esGeneral) && (
-        <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center ml-0 md:ml-64 mt-16 p-4">
-          <div className="bg-[#0a0a0a] p-8 md:p-10 rounded-2xl border border-[#D4AF37]/20 text-center shadow-2xl shadow-black max-w-md w-full relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent opacity-40"></div>
+        <div className="fixed inset-0 z-[10] flex items-center justify-center p-4 pt-24 lg:pl-72">
+          <div className="absolute inset-0 bg-black/85 transition-all" />
+          <div className="relative bg-[#0a0a0a] w-full max-w-sm md:max-w-md rounded-2xl border border-[#D4AF37]/20 text-center shadow-2xl shadow-black overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent opacity-50"></div>
+            <div className="p-6 sm:p-10">
+              <h2 className="text-2xl sm:text-3xl font-serif text-[#D4AF37] mb-2 tracking-wide">CERRADO</h2>
 
-            <h2 className="text-3xl font-serif text-[#D4AF37] mb-2 tracking-wide">CERRADO</h2>
-            <p className="text-zinc-600 font-bold text-[10px] uppercase mb-8 tracking-[0.4em]">Agenda Bloqueada</p>
+              {/* Subtítulo */}
+              <p className="text-zinc-600 font-bold text-[9px] sm:text-[10px] uppercase mb-6 sm:mb-8 tracking-[0.3em] sm:tracking-[0.4em]">
+                Agenda Bloqueada
+              </p>
 
-            <div className="bg-[#141414] px-8 py-6 rounded-lg border border-zinc-800 mb-8">
-              <p className="text-zinc-300 italic font-medium text-lg">"{bloqueos.find(b => b.esGeneral)?.motivo}"</p>
+              {/* Caja del motivo */}
+              <div className="bg-[#141414] px-4 py-5 sm:px-8 sm:py-6 rounded-xl border border-zinc-800/60 mb-8 mx-auto">
+                <p className="text-zinc-300 italic font-medium text-base sm:text-lg break-words">
+                  "{bloqueos.find(b => b.esGeneral)?.motivo}"
+                </p>
+              </div>
+
+              {/* Botón de acción */}
+              <button
+                onClick={(e) => {
+                  // Detenemos la propagación para evitar clicks fantasma
+                  e.stopPropagation();
+                  const bloqueoGeneral = bloqueos.find(b => b.esGeneral);
+                  if (bloqueoGeneral) {
+                    handleDeleteRequest(bloqueoGeneral.id, { stopPropagation: () => { } } as any);
+                  }
+                }}
+                className="w-full sm:w-auto bg-transparent text-[#D4AF37] px-6 py-3.5 sm:px-8 sm:py-3 rounded-lg border border-[#D4AF37]/30 hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all duration-300 font-bold tracking-widest uppercase text-[10px] sm:text-xs active:scale-95"
+              >
+                Desbloquear Día
+              </button>
             </div>
-
-            <button onClick={() => { const bloqueoGeneral = bloqueos.find(b => b.esGeneral); if (bloqueoGeneral) handleDeleteRequest(bloqueoGeneral.id, { stopPropagation: () => { } } as any); }} className="bg-transparent text-[#D4AF37] px-8 py-3 rounded-lg border border-[#D4AF37]/50 hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37] transition-all duration-300 font-bold tracking-widest uppercase text-[10px]">Desbloquear Día </button>
           </div>
         </div>
       )}

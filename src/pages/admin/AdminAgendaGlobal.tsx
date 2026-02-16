@@ -42,14 +42,14 @@ export const AdminAgendaGlobal = () => {
     setTurnoParaCobrar(turno);
   };
 
-  if (isLoading) return <div className="h-screen flex items-center justify-center bg-[#111827] text-[#D4AF37] animate-pulse font-serif tracking-widest">CARGANDO AGENDA...</div>;
+  if (isLoading) return <div className="h-screen flex items-center justify-center bg-[#131313] text-[#C9A227] animate-pulse font-serif tracking-widest">CARGANDO AGENDA...</div>;
 
   return (
     <div className="h-screen flex flex-col bg-[#131313] font-sans text-slate-200 overflow-y-auto">
 
       {/* ... (HEADER SE MANTIENE IGUAL) ... */}
-      <div className="w-full bg-[#131313] px-4 md:px-6 py-4 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
-        <div className="w-full md:w-auto flex justify-between md:justify-start items-center">
+      <div className="w-full bg-[#131313] px-4 md:px-6 py-4 border-b border-slate-800 flex z-[27]flex-col md:flex-row justify-between items-center gap-4 shrink-0">
+        <div className="w-full md:w-auto flex justify-between z-[27] md:justify-start items-center">
           <h1 className="text-xl md:text-2xl font-black text-white flex items-center gap-2 tracking-tight">
             Agenda Global
             <span className="text-[#D4AF37] text-[10px] md:text-xs font-bold tracking-widest uppercase bg-[#D4AF37]/10 px-2 py-0.5 rounded border border-[#D4AF37]/20">
@@ -58,7 +58,7 @@ export const AdminAgendaGlobal = () => {
           </h1>
         </div>
 
-        <div className="flex gap-3 w-full md:w-auto justify-between md:justify-end">
+        <div className="flex gap-3 w-full md:w-auto z-[27] justify-between md:justify-end">
           <div className="flex items-center gap-1 md:gap-10 bg-[#1f1f1f] p-1 rounded-lg shadow-inner flex-1 md:flex-none justify-between md:justify-start">
             <button onClick={handlePrevDay} className="p-1.5 md:p-2 hover:bg-[#D4AF37]/20 hover:text-[#D4AF37] rounded-md transition text-[#131313]">
               <ChevronLeft size={18} />

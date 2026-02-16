@@ -26,13 +26,9 @@ export const CobroModal = ({
   if (!isOpen || !turno) return null;
 
   const [metodo, setMetodo] = useState<'EFECTIVO' | 'TRANSFERENCIA'>('EFECTIVO');
-
-  // CÁLCULOS
   const precioTotal = Number(turno.servicio.precio);
-  const pagadoPrevio = turno.pago?.estado === 'approved' ? Number(turno.pago.monto) : 0;
+  const pagadoPrevio = Number(turno.montoAbonado || 0);
   const aCobrar = Math.max(0, precioTotal - pagadoPrevio);
-
-  // DATOS DEL BARBERO
   const barbero = turno.barbero;
   const tieneQr = !!barbero.imagenQrUrl;
 
@@ -72,12 +68,15 @@ export const CobroModal = ({
             <span>Total Servicio</span>
             <span className="text-slate-200">${precioTotal}</span>
           </div>
+
+          {/* Mostramos el descuento si ya pagó algo (sea seña web o efectivo previo) */}
           {pagadoPrevio > 0 && (
             <div className="flex justify-between text-sm text-emerald-500 font-medium">
-              <span>Seña pagada (Web)</span>
+              <span>Ya Abonado / Seña</span>
               <span>- ${pagadoPrevio}</span>
             </div>
           )}
+
           <div className="flex justify-between items-end pt-3 border-t border-white/5 mt-2">
             <span className="font-bold text-[#C9A227] uppercase text-xs tracking-[0.2em] mb-1">Resto a Cobrar</span>
             <span className="text-4xl font-black text-white tracking-tighter">${aCobrar}</span>
@@ -92,34 +91,44 @@ export const CobroModal = ({
         )}
 
         {/* SELECTOR DE MÉTODO */}
-        <div className="px-6 pt-4 pb-2">
-          <div className="grid grid-cols-2 gap-3 p-1.5 bg-[#131313] rounded-xl border border-white/5">
-            <button
-              onClick={() => setMetodo('EFECTIVO')}
-              className={`flex items-center justify-center gap-2 py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all 
+        {aCobrar > 0 && ( // Solo mostramos selector si hay algo que cobrar
+          <div className="px-6 pt-4 pb-2">
+            <div className="grid grid-cols-2 gap-3 p-1.5 bg-[#131313] rounded-xl border border-white/5">
+              <button
+                onClick={() => setMetodo('EFECTIVO')}
+                className={`flex items-center justify-center gap-2 py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all 
                                 ${metodo === 'EFECTIVO'
-                  ? 'bg-[#1A1A1A] text-[#C9A227] shadow-lg border border-[#C9A227]/30'
-                  : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1A1A1A]'}`}
-            >
-              <Banknote size={16} /> Efectivo
-            </button>
-            <button
-              onClick={() => setMetodo('TRANSFERENCIA')}
-              className={`flex items-center justify-center gap-2 py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all 
+                    ? 'bg-[#1A1A1A] text-[#C9A227] shadow-lg border border-[#C9A227]/30'
+                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1A1A1A]'}`}
+              >
+                <Banknote size={16} /> Efectivo
+              </button>
+              <button
+                onClick={() => setMetodo('TRANSFERENCIA')}
+                className={`flex items-center justify-center gap-2 py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all 
                                 ${metodo === 'TRANSFERENCIA'
-                  ? 'bg-[#1A1A1A] text-blue-400 shadow-lg border border-blue-500/30'
-                  : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1A1A1A]'}`}
-            >
-              <QrCode size={16} /> QR / Transf.
-            </button>
+                    ? 'bg-[#1A1A1A] text-blue-400 shadow-lg border border-blue-500/30'
+                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-[#1A1A1A]'}`}
+              >
+                <QrCode size={16} /> QR / Transf.
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* CUERPO DINÁMICO */}
         <div className="p-6 pt-4">
 
-          {/* CASO A: EFECTIVO */}
-          {metodo === 'EFECTIVO' && (
+          {/* Si ya no hay nada que cobrar */}
+          {aCobrar === 0 && (
+            <div className="bg-emerald-900/10 border border-emerald-900/30 rounded-2xl p-6 text-center space-y-2 mb-4">
+              <h4 className="font-bold text-emerald-400">¡Totalmente Pagado!</h4>
+              <p className="text-xs text-emerald-300/70">Este turno ya no tiene saldo pendiente.</p>
+            </div>
+          )}
+
+          {/* CASO A: EFECTIVO (Solo si hay deuda) */}
+          {metodo === 'EFECTIVO' && aCobrar > 0 && (
             <div className="bg-[#131313] border border-[#C9A227]/30 rounded-2xl p-6 text-center space-y-4 animate-in slide-in-from-left-4 duration-300 relative overflow-hidden">
               <div className="w-14 h-14 bg-[#131313] text-[#C9A227] border border-[#C9A227]/20 rounded-full flex items-center justify-center mx-auto relative z-10"><Banknote size={28} /></div>
               <div className="relative z-10">
@@ -131,8 +140,8 @@ export const CobroModal = ({
             </div>
           )}
 
-          {/* CASO B: TRANSFERENCIA / QR */}
-          {metodo === 'TRANSFERENCIA' && (
+          {/* CASO B: TRANSFERENCIA / QR (Solo si hay deuda) */}
+          {metodo === 'TRANSFERENCIA' && aCobrar > 0 && (
             <div className="animate-in slide-in-from-right-4 duration-300">
               {tieneQr ? (
                 <div className="space-y-4">
@@ -202,12 +211,12 @@ export const CobroModal = ({
             {isProcessing ? 'PROCESANDO...' : (
               <>
                 <CheckCircle2 size={18} className="group-hover:scale-110 transition-transform" />
-                CONFIRMAR COBRO DE ${aCobrar}
+                {aCobrar > 0 ? `CONFIRMAR COBRO DE $${aCobrar}` : 'FINALIZAR TURNO (PAGADO)'}
               </>
             )}
           </button>
 
-          {metodo === 'TRANSFERENCIA' && (
+          {metodo === 'TRANSFERENCIA' && aCobrar > 0 && (
             <p className="text-[10px] text-center text-zinc-500 mt-4 px-4 font-medium">
               * Al confirmar, asegúrate de haber visto el comprobante de pago del cliente.
             </p>

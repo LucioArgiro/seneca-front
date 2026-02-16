@@ -14,10 +14,7 @@ export const AgendaPopover = ({ isOpen, x, y, data, onClose, onAction }: AgendaP
 
   return (
     <>
-      {/* Backdrop invisible para cerrar al hacer click fuera */}
       <div className="fixed inset-0 z-40" onClick={onClose}></div>
-      
-      {/* Popover Card */}
       <div
         className="fixed z-50 bg-[#1A1A1A] rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.9)] border border-white/10 p-2 w-52 animate-in zoom-in-95 duration-100"
         style={{ top: Math.min(y, window.innerHeight - 200), left: Math.min(x, window.innerWidth - 200) }}

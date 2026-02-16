@@ -3,14 +3,16 @@ import { useCaja } from '../hooks/useCaja';
 import { StatCard } from '../components/caja/StatCard';
 import { ModalNuevoMovimiento } from '../components/caja/ModalNuevoMovimiento';
 import { useAuthStore } from '../store/auth';
+import { cajaApi } from '../api/caja'; // Asegúrate de importar la API aquí
+import { toast } from 'react-hot-toast';
 import {
   Wallet, TrendingUp, TrendingDown, Plus, ArrowUpRight, ArrowDownRight, Loader2, Calendar,
-  Users, ChevronDown, FileText, Check, User
+  Users, ChevronDown, FileText, Check, User, FileSpreadsheet // 👈 Agregado icono Excel
 } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import dayjs from 'dayjs';
 
-const COLORS = ['#6366f1','#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#8b5cf6'];
+const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#8b5cf6'];
 
 interface Props {
   role: 'ADMIN' | 'BARBER';
@@ -29,8 +31,6 @@ const CajaSelect = ({ selectedId, onChange, listaCajas }: { selectedId: string, 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Filtramos la lista para NO mostrar al Admin (ya que Admin = Caja Central)
-  // Mostramos solo usuarios que tengan caja y NO sean ADMIN
   const barberosDisponibles = listaCajas.filter(c => c.usuario && c.usuario.role !== 'ADMIN');
 
   const getLabel = () => {
@@ -60,8 +60,6 @@ const CajaSelect = ({ selectedId, onChange, listaCajas }: { selectedId: string, 
 
       {isOpen && (
         <div className="absolute top-full left-0 w-full mt-2 bg-[#1A1A1A] border border-zinc-700 rounded-xl shadow-2xl z-50 overflow-hidden custom-scrollbar max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
-
-          {/* OPCIÓN 1: CAJA CENTRAL (Default del Admin) */}
           <div
             onClick={() => handleSelect('CENTRAL')}
             className={`px-4 py-3 text-sm cursor-pointer flex items-center justify-between transition-colors border-b border-white/5
@@ -71,7 +69,6 @@ const CajaSelect = ({ selectedId, onChange, listaCajas }: { selectedId: string, 
             {(selectedId === 'CENTRAL' || !selectedId) && <Check size={16} />}
           </div>
 
-          {/* OPCIONES: LISTA DE BARBEROS */}
           {barberosDisponibles.length > 0 && (
             <p className="px-4 py-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider bg-black/20">
               Ver cuentas de Barberos
@@ -99,7 +96,6 @@ const CajaSelect = ({ selectedId, onChange, listaCajas }: { selectedId: string, 
 export const CajaDashboard = ({ role }: Props) => {
   const { usuario: authUser } = useAuthStore();
 
-  // Inicializamos filtro: si es Admin, empezamos en 'CENTRAL'
   const {
     caja,
     movimientos,
@@ -143,11 +139,8 @@ export const CajaDashboard = ({ role }: Props) => {
     let targetUserId = selectedCajaId;
 
     if (role === 'BARBER') {
-      // Barbero -> Siempre es su ID
       targetUserId = authUser?.id || '';
     } else {
-      // Admin -> Si está en CENTRAL, mandamos undefined para que sea general
-      // Si está viendo a un barbero específico, mandamos ese ID para asignarle el movimiento
       if (targetUserId === 'CENTRAL' || !targetUserId) targetUserId = '';
     }
 
@@ -158,6 +151,30 @@ export const CajaDashboard = ({ role }: Props) => {
       onSuccess: () => setIsModalOpen(false)
     });
   };
+
+  // 👇👇 NUEVA FUNCIÓN: EXPORTAR EXCEL 👇👇
+  const handleExportar = async () => {
+    try {
+        const fechaActual = dayjs();
+        const mes = fechaActual.month() + 1; 
+        const anio = fechaActual.year();
+        
+        // Usamos el ID de la caja que estamos viendo actualmente
+        const idParaReporte = caja?.id; 
+
+        if (!idParaReporte) return toast.error("Cargando datos...");
+
+        toast.loading("Generando Excel...", { id: 'export-toast' });
+        await cajaApi.downloadExcel(idParaReporte, mes, anio);
+        toast.dismiss('export-toast');
+        toast.success("¡Reporte descargado!");
+    } catch (error) {
+        toast.dismiss('export-toast');
+        toast.error("Error al exportar");
+        console.error(error);
+    }
+  };
+  // 👆👆 FIN DE LA FUNCIÓN 👆👆
 
   if (isLoading) return <div className="h-screen flex items-center justify-center bg-[#131313]"><Loader2 className="animate-spin text-[#C9A227]" size={40} /></div>;
 
@@ -171,7 +188,6 @@ export const CajaDashboard = ({ role }: Props) => {
             {role === 'ADMIN' ? 'Panel Financiero' : 'Mi Caja'}
           </h1>
 
-          {/* Selector para Admin (Oculta al usuario Admin de la lista) */}
           {role === 'ADMIN' && (
             <div className="mt-4">
               <CajaSelect
@@ -184,7 +200,29 @@ export const CajaDashboard = ({ role }: Props) => {
 
           {role !== 'ADMIN' && <p className="text-zinc-500 text-sm mt-1">Tu balance personal.</p>}
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="w-full lg:w-auto text-[#C9A227] hover:bg-[#C9A227] hover:text-[#131313] px-5 py-3 lg:py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 transform hover:-translate-y-0.5 border border-[#C9A227]/50"><div className="bg-black/20 p-1 rounded-full border"><Plus size={18} /></div> Nuevo Movimiento</button>
+
+        {/* BOTONES DE ACCIÓN */}
+        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            
+            {/* BOTÓN EXPORTAR EXCEL (Nuevo) */}
+            <button 
+                onClick={handleExportar} 
+                className="w-full lg:w-auto text-emerald-400 hover:bg-emerald-400 hover:text-[#131313] px-5 py-3 lg:py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 transform hover:-translate-y-0.5 border border-emerald-400/50"
+            >
+                <div className="bg-black/20 p-1 rounded-full border border-emerald-400/30">
+                    <FileSpreadsheet size={18} />
+                </div> 
+                Exportar Mes
+            </button>
+
+            {/* BOTÓN NUEVO MOVIMIENTO */}
+            <button onClick={() => setIsModalOpen(true)} className="w-full lg:w-auto text-[#C9A227] hover:bg-[#C9A227] hover:text-[#131313] px-5 py-3 lg:py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 transform hover:-translate-y-0.5 border border-[#C9A227]/50">
+                <div className="bg-black/20 p-1 rounded-full border border-[#C9A227]/30">
+                    <Plus size={18} />
+                </div> 
+                Nuevo Movimiento
+            </button>
+        </div>
       </div>
 
       {/* TARJETAS KPI */}
@@ -248,11 +286,12 @@ export const CajaDashboard = ({ role }: Props) => {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <p className="font-bold text-white text-xs md:text-sm truncate">{mov.concepto}</p>
-                            {mov.usuario && (
-                              <span className="text-[9px] bg-white/10 text-zinc-400 px-1.5 rounded-sm flex items-center gap-1">
-                                <User size={9} /> {mov.usuario.nombre}
-                              </span>
-                            )}
+                            
+                            {/* AQUÍ ESTÁ EL CAMBIO VISUAL DEL USUARIO QUE ACORDAMOS ANTES */}
+                            <span className="text-[9px] bg-white/10 text-zinc-400 px-1.5 rounded-sm flex items-center gap-1">
+                                <User size={9} /> {mov.usuario?.nombre || 'Web / Sistema'}
+                            </span>
+
                           </div>
                           <p className="text-[10px] md:text-xs text-zinc-500 truncate mt-0.5">{mov.descripcion || '...'}</p>
                         </div>

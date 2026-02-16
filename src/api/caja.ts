@@ -40,17 +40,30 @@ export const cajaApi = {
         const { data } = await api.get('/caja/me');
         return data;
     },
+    downloadExcel: async (cajaId: string, mes: number, anio: number) => {
+        // NOTA: responseType: 'blob' es CRUCIAL para descargar archivos
+        const response = await api.get('/caja/exportar', {
+            params: { cajaId, mes, anio },
+            responseType: 'blob'
+        });
 
-    // 2. Obtener la caja central explícitamente (Admin)
+        // Crear URL temporal para descargar
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `Reporte_${mes}_${anio}.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    },
+
+
     getCajaCentral: async () => {
-        // Asumimos que el backend entiende que sin param o con param especial devuelve la central
-        // O si tienes un endpoint específico: api.get('/caja/central')
-        // Si no, usamos getMiCaja si el admin es el dueño
         const { data } = await api.get('/caja/me');
         return data;
     },
 
-    // 3. Obtener caja de un usuario específico (Para el selector del Admin)
+
     getCajaByUserId: async (userId: string) => {
         // Necesitas un endpoint en backend tipo: @Get('admin/:userId')
         const { data } = await api.get(`/caja/admin/${userId}`);

@@ -1,20 +1,19 @@
 import api from './axios';
 
 export interface CreateTurnoDto {
-  fecha: string; // ISO String
+  fecha: string;
   barberoId: string;
   servicioId: string;
   montoPagar?: number;
-  tipoPago?: string;   // 'TOTAL', 'SENIA' o 'LOCAL'
+  tipoPago?: string;
 }
 
-// RESPUESTA DE LA API (Estructura exacta de tu Backend)
 export interface TurnoResponse {
   id: string;
   fecha: string;
   fechaFin: string;
   estado: 'PENDIENTE' | 'CONFIRMADO' | 'COMPLETADO' | 'CANCELADO';
-
+  montoAbonado?: number;
   pago?: {
     id: string;
     estado: 'pending' | 'approved' | 'rejected' | 'in_process';
@@ -45,13 +44,12 @@ export interface TurnoResponse {
       nombre: string;
       apellido: string;
       email: string;
-      telefono?: string; // Puede ser opcional dependiendo de tu DB
+      telefono?: string;
     }
   };
 }
 
 export const turnosApi = {
-  // 1. Traer turnos (Filtro opcional por fecha)
   getTurnos: async (params: any) => {
     const { data } = await api.get<TurnoResponse[]>('/turnos', { params });
     return data;
