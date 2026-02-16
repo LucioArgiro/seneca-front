@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNegocio } from '../../hooks/useNegocio';
 import { filesApi } from '../../api/files';
-import { Save, Building, Clock, Upload, Camera, Trash2, Plus, Sun, Moon, Image as ImageIcon, AlertTriangle } from 'lucide-react';
+import { Save, AlertCircle, Building, Clock, Upload, Camera, Trash2, Plus, Sun, Moon, Image as ImageIcon, AlertTriangle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const DIAS_SEMANA = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -156,7 +156,7 @@ export const AdminConfiguracion = () => {
           <span className="font-bold text-sm text-white">¿Borrar imagen?</span>
         </div>
         <p className="text-xs text-slate-400">Se eliminará permanentemente de la nube.</p>
-        
+
         <div className="flex gap-2 mt-1 justify-end">
           <button
             className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition"
@@ -164,24 +164,24 @@ export const AdminConfiguracion = () => {
           >
             Cancelar
           </button>
-          
+
           <button
             className="bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-500 hover:text-white transition flex items-center gap-1"
             onClick={async () => {
               toast.dismiss(t.id);
               setUploading(true);
-              const loadingToast = toast.loading("Eliminando...", { style: { background: '#1A1A1A', color: '#fff' }});
+              const loadingToast = toast.loading("Eliminando...", { style: { background: '#1A1A1A', color: '#fff' } });
 
               try {
                 await filesApi.deleteImage(urlToRemove);
-                setForm(prev => ({ 
-                  ...prev, 
-                  galeria: prev.galeria.filter(url => url !== urlToRemove) 
+                setForm(prev => ({
+                  ...prev,
+                  galeria: prev.galeria.filter(url => url !== urlToRemove)
                 }));
-                
-                toast.success("Imagen borrada correctamente", { 
+
+                toast.success("Imagen borrada correctamente", {
                   id: loadingToast,
-                  style: { background: '#1A1A1A', color: '#C9A227', border: '1px solid rgba(201,162,39,0.3)' } 
+                  style: { background: '#1A1A1A', color: '#C9A227', border: '1px solid rgba(201,162,39,0.3)' }
                 });
               } catch (error) {
                 console.error(error);
@@ -265,66 +265,144 @@ export const AdminConfiguracion = () => {
         </div>
 
         {/* 2. SECCIÓN HORARIOS */}
-        <div className="p-8 bg-[#131313] border-t border-white/5">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${horariosModificados ? 'bg-[#C9A227]/20 text-[#C9A227]' : 'bg-[#C9A227]/10 text-[#C9A227]'}`}>
-                <Clock size={20} />
+        <div className="p-4 sm:p-6 lg:p-8 bg-[#131313] border-t border-white/5 rounded-b-2xl">
+
+          {/* HEADER */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-start gap-3">
+              <div className={`p-2.5 rounded-xl shrink-0 ${horariosModificados ? 'bg-[#C9A227]/20 text-[#C9A227]' : 'bg-[#252525] text-zinc-400'}`}>
+                <Clock size={22} />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">Horarios de Atención</h3>
-                <p className="text-xs text-slate-500">Activa o desactiva turnos según tus días de apertura.</p>
+                <h3 className="text-base font-bold text-white leading-tight">Horarios de Atención</h3>
+                <p className="text-xs text-zinc-500 mt-1 max-w-md">
+                  Configura los rangos de días y horas en los que tu local está abierto.
+                </p>
               </div>
             </div>
-            {horariosModificados && <span className="text-xs font-bold text-[#C9A227] bg-[#C9A227]/10 px-3 py-1 rounded-full border border-[#C9A227]/20">Cambios sin guardar</span>}
+            {horariosModificados && (
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-500 bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20 self-start sm:self-center animate-pulse">
+                <AlertCircle size={14} /> Cambios sin guardar
+              </div>
+            )}
           </div>
 
-          <div className="space-y-3">
+          {/* LISTA DE RANGOS */}
+          <div className="space-y-4">
             {rangos.map((rango) => (
-              <div key={rango.id} className="bg-[#1A1A1A] border border-white/5 rounded-xl p-4 shadow-sm relative group flex flex-col lg:flex-row gap-6 items-start lg:items-center hover:border-[#C9A227]/30 transition-colors">
-
-                {/* SELECTORES DE DÍA */}
-                <div className="flex items-center gap-2 w-full lg:w-auto min-w-[280px]">
-                  <span className="text-xs font-bold text-slate-500 uppercase w-6">De</span>
-                  <select value={rango.diaInicio} onChange={(e) => updateRango(rango.id, 'diaInicio', e.target.value)} className="input-select flex-1">
-                    {DIAS_SEMANA.map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                  <span className="text-xs font-bold text-slate-500 uppercase w-6 text-center">a</span>
-                  <select value={rango.diaFin} onChange={(e) => updateRango(rango.id, 'diaFin', e.target.value)} className="input-select flex-1">
-                    {DIAS_SEMANA.map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-
-                {/* CONTENEDORES DE HORA */}
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-
-                  {/* MAÑANA CON CHECKBOX */}
-                  <div className={`flex items-center gap-2 bg-[#252525] p-2 rounded-lg border border-white/5 transition-opacity ${!rango.manana.activo ? 'opacity-30' : ''}`}>
-                    <input type="checkbox" checked={rango.manana.activo} onChange={(e) => updateRango(rango.id, 'manana', e.target.checked, 'activo')} className="accent-[#C9A227] cursor-pointer w-4 h-4 bg-[#333] border-[#444]" />
-                    <Sun size={14} className={rango.manana.activo ? "text-[#C9A227]" : "text-slate-500"} />
-                    <input disabled={!rango.manana.activo} type="time" value={rango.manana.desde} onChange={(e) => updateRango(rango.id, 'manana', e.target.value, 'desde')} className="input-mini flex-1" />
-                    <span className="text-slate-500">-</span>
-                    <input disabled={!rango.manana.activo} type="time" value={rango.manana.hasta} onChange={(e) => updateRango(rango.id, 'manana', e.target.value, 'hasta')} className="input-mini flex-1" />
-                  </div>
-
-                  {/* TARDE CON CHECKBOX */}
-                  <div className={`flex items-center gap-2 bg-[#252525] p-2 rounded-lg border border-white/5 transition-opacity ${!rango.tarde.activo ? 'opacity-30' : ''}`}>
-                    <input type="checkbox" checked={rango.tarde.activo} onChange={(e) => updateRango(rango.id, 'tarde', e.target.checked, 'activo')} className="accent-[#C9A227] cursor-pointer w-4 h-4 bg-[#333] border-[#444]" />
-                    <Moon size={14} className={rango.tarde.activo ? "text-slate-200" : "text-slate-500"} />
-                    <input disabled={!rango.tarde.activo} type="time" value={rango.tarde.desde} onChange={(e) => updateRango(rango.id, 'tarde', e.target.value, 'desde')} className="input-mini flex-1" />
-                    <span className="text-slate-500">-</span>
-                    <input disabled={!rango.tarde.activo} type="time" value={rango.tarde.hasta} onChange={(e) => updateRango(rango.id, 'tarde', e.target.value, 'hasta')} className="input-mini flex-1" />
-                  </div>
-                </div>
-
-                <button type="button" onClick={() => removeRango(rango.id)} className="absolute -top-2 -right-2 lg:static lg:p-2 bg-[#252525] lg:bg-transparent shadow-sm lg:shadow-none rounded-full text-slate-500 hover:text-[#C9A227] transition border border-white/10 lg:border-0">
+              <div
+                key={rango.id}
+                className="bg-[#1A1A1A] border border-white/5 rounded-2xl p-4 sm:p-5 shadow-lg relative group transition-all hover:border-[#C9A227]/30 hover:shadow-[#C9A227]/5 flex flex-col xl:flex-row gap-5 xl:items-center"
+              >
+                {/* BOTÓN ELIMINAR (FLOTANTE EN MÓVIL, FINAL EN PC) */}
+                <button
+                  type="button"
+                  onClick={() => removeRango(rango.id)}
+                  className="absolute -top-3 -right-3 xl:static p-2 bg-[#252525] xl:bg-transparent text-zinc-500 hover:text-red-400 hover:bg-red-900/20 xl:hover:bg-transparent rounded-full shadow-md xl:shadow-none border border-white/10 xl:border-0 transition-colors z-10"
+                  title="Eliminar rango"
+                >
                   <Trash2 size={18} />
                 </button>
+
+                {/* 1. SELECTORES DE DÍA (RANGO) */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full xl:w-auto xl:min-w-[320px]">
+                  <div className="flex items-center gap-2 w-full">
+                    <span className="text-[10px] font-bold text-zinc-600 uppercase w-6 shrink-0">De</span>
+                    <div className="relative w-full">
+                      <select
+                        value={rango.diaInicio}
+                        onChange={(e) => updateRango(rango.id, 'diaInicio', e.target.value)}
+                        className="w-full bg-[#131313] text-white text-sm border border-white/10 rounded-lg px-3 py-2.5 appearance-none focus:outline-none focus:border-[#C9A227] transition-colors cursor-pointer"
+                      >
+                        {DIAS_SEMANA.map(d => <option key={d} value={d}>{d}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full">
+                    <span className="text-[10px] font-bold text-zinc-600 uppercase w-6 shrink-0 text-center sm:text-left">A</span>
+                    <div className="relative w-full">
+                      <select
+                        value={rango.diaFin}
+                        onChange={(e) => updateRango(rango.id, 'diaFin', e.target.value)}
+                        className="w-full bg-[#131313] text-white text-sm border border-white/10 rounded-lg px-3 py-2.5 appearance-none focus:outline-none focus:border-[#C9A227] transition-colors cursor-pointer"
+                      >
+                        {DIAS_SEMANA.map(d => <option key={d} value={d}>{d}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. CONTENEDORES DE HORA */}
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+
+                  {/* MAÑANA */}
+                  <div className={`flex items-center gap-2 bg-[#252525] px-3 py-2.5 rounded-xl border border-white/5 transition-all duration-200 ${!rango.manana.activo ? 'opacity-40 grayscale' : 'hover:border-white/10'}`}>
+                    <input
+                      type="checkbox"
+                      checked={rango.manana.activo}
+                      onChange={(e) => updateRango(rango.id, 'manana', e.target.checked, 'activo')}
+                      className="accent-[#C9A227] cursor-pointer w-4 h-4 bg-[#333] border-[#444] rounded shrink-0"
+                    />
+                    <Sun size={16} className={`shrink-0 ${rango.manana.activo ? "text-[#C9A227]" : "text-slate-500"}`} />
+
+                    <div className="flex items-center gap-2 w-full ml-1">
+                      <input
+                        disabled={!rango.manana.activo}
+                        type="time"
+                        value={rango.manana.desde}
+                        onChange={(e) => updateRango(rango.id, 'manana', e.target.value, 'desde')}
+                        className="bg-transparent text-white text-sm w-full focus:outline-none text-center disabled:cursor-not-allowed font-medium"
+                      />
+                      <span className="text-zinc-600 font-light">-</span>
+                      <input
+                        disabled={!rango.manana.activo}
+                        type="time"
+                        value={rango.manana.hasta}
+                        onChange={(e) => updateRango(rango.id, 'manana', e.target.value, 'hasta')}
+                        className="bg-transparent text-white text-sm w-full focus:outline-none text-center disabled:cursor-not-allowed font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  {/* TARDE */}
+                  <div className={`flex items-center gap-2 bg-[#252525] px-3 py-2.5 rounded-xl border border-white/5 transition-all duration-200 ${!rango.tarde.activo ? 'opacity-40 grayscale' : 'hover:border-white/10'}`}>
+                    <input
+                      type="checkbox"
+                      checked={rango.tarde.activo}
+                      onChange={(e) => updateRango(rango.id, 'tarde', e.target.checked, 'activo')}
+                      className="accent-[#C9A227] cursor-pointer w-4 h-4 bg-[#333] border-[#444] rounded shrink-0"
+                    />
+                    <Moon size={16} className={`shrink-0 ${rango.tarde.activo ? "text-blue-200" : "text-slate-500"}`} />
+
+                    <div className="flex items-center gap-2 w-full ml-1">
+                      <input
+                        disabled={!rango.tarde.activo}
+                        type="time"
+                        value={rango.tarde.desde}
+                        onChange={(e) => updateRango(rango.id, 'tarde', e.target.value, 'desde')}
+                        className="bg-transparent text-white text-sm w-full focus:outline-none text-center disabled:cursor-not-allowed font-medium"
+                      />
+                      <span className="text-zinc-600 font-light">-</span>
+                      <input
+                        disabled={!rango.tarde.activo}
+                        type="time"
+                        value={rango.tarde.hasta}
+                        onChange={(e) => updateRango(rango.id, 'tarde', e.target.value, 'hasta')}
+                        className="bg-transparent text-white text-sm w-full focus:outline-none text-center disabled:cursor-not-allowed font-medium"
+                      />
+                    </div>
+                  </div>
+
+                </div>
               </div>
             ))}
-            <button type="button" onClick={addRango} className="w-full py-3 bg-[#1A1A1A] border border-dashed border-[#C9A227]/30 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#C9A227]/5 transition"><Plus size={18} /> Agregar rango horario</button>
+
+            {/* BOTÓN AGREGAR */}
+            <button type="button" onClick={addRango} className="w-full py-3.5 bg-[#1A1A1A] border border-dashed border-[#C9A227]/30 text-zinc-300 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#C9A227]/5 hover:text-[#C9A227] hover:border-[#C9A227] transition-all active:scale-[0.99]"><Plus size={18} />Agregar rango horario</button>
           </div>
         </div>
+
 
         {/* 3. SECCIÓN GALERÍA */}
         <div className="p-8 bg-[#1A1A1A] border-t border-white/5">
