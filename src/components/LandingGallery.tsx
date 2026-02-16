@@ -39,7 +39,7 @@ export const LandingGallery = () => {
           </div>
 
           <a
-            href={`https://instagram.com/${(negocio as any)?.instagram?.replace('@', '') || ''}`}
+            href={`${(negocio as any)?.instagram?.replace('@', '') || ''}`}
             target="_blank"
             rel="noopener noreferrer"
             className="group flex items-center gap-2 text-zinc-400 hover:text-[#C9A227] transition-colors text-xs font-bold uppercase tracking-widest border-b border-transparent hover:border-[#C9A227] pb-1"
