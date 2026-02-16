@@ -40,6 +40,9 @@ export interface TurnoResponse {
 
   barbero: {
     id: string;
+    precioSenia?: number;
+    aliasMp?: string;      
+    imagenQrUrl?: string;  
     usuario: {
       nombre: string;
       apellido: string;
