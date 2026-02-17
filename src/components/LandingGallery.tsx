@@ -73,7 +73,7 @@ export const LandingGallery = () => {
               {/* Texto Flotante */}
               <div className="absolute bottom-0 left-0 w-full p-8 translate-y-4 group-hover:translate-y-0 transition-transform duration-500 flex flex-col justify-end">
                 <p className="text-[#C9A227] text-[10px] font-bold uppercase tracking-[0.2em] mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">Corte Premium</p>
-                <p className="text-white font-black text-2xl uppercase tracking-wide">Estilo & Precisión</p>
+                <p className="text-white font-black text-2xl uppercase tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">Estilo & Precisión</p>
               </div>
             </div>
           )}

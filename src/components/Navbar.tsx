@@ -10,13 +10,12 @@ export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
 
   const { usuario, isAuth, logout } = useAuthStore();
-  console.log("usuario:", usuario); // 👈 AQUI
   const { negocio } = useNegocio();
   const logoUrl = negocio?.logoUrl;
   const closeMenu = () => setIsOpen(false);
 
   const handleLogout = async () => {
-    await logout(); // 👈 Asegúrate de que sea async si el store lo es
+    await logout(); 
     closeMenu();
     navigate('/login');
   };
