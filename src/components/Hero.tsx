@@ -4,7 +4,7 @@ export const Hero = () => {
   const navigate = useNavigate();
 
   return (
-    <section id="inicio" className="relative h-[50vh] min-h-[400px] md:h-[700px] flex items-end justify-center pb-12 md:pb-20 overflow-hidden">
+    <section id="inicio" className="relative h-[50vh] min-h-[350px] md:h-[700px] flex items-end justify-center pb-12 md:pb-20 overflow-hidden">
       
       {/* 1. IMAGEN DE FONDO */}
       {/* Le agregamos una animación sutil de zoom-out para que la imagen "respire" al cargar */}
