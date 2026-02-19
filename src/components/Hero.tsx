@@ -6,7 +6,7 @@ export const Hero = () => {
   return (
     // 1. CAMBIO AQUÍ: Usamos h-[40dvh] (más estable) y un min-h-[330px] para que no se aplaste.
     // 2. CAMBIO AQUÍ: Subimos pb-8 a pb-12 para que los botones no tapen el texto de la imagen.
-    <section id="inicio" className="relative h-[40dvh] min-h-[330px] w-full md:h-[700px] md:min-h-0 flex items-end justify-center pb-12 md:pb-20 overflow-hidden">
+    <section id="inicio" className="relative h-[40dvh] min-h-[350px] w-full md:h-[700px] md:min-h-0 flex items-end justify-center pb-12 md:pb-20 overflow-hidden">
       
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat" 
