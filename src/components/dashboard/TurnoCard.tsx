@@ -97,7 +97,7 @@ export const TurnoCard = ({ turno, onCancel }: TurnoCardProps) => {
           ) : (
             <div className="flex flex-col items-end text-xs">
               <p className="text-zinc-400">Total: <span className="font-bold">${precioTotal}</span></p>
-              <p className="text-green-500/90 mb-1">Seña (Admin): <span className="font-bold">-${montoPagado}</span></p>
+              <p className="text-green-500/90 mb-1">Seña: <span className="font-bold">-${montoPagado}</span></p>
 
               <div className="border-t border-white/10 pt-1 mt-1 text-right">
                 <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-0.5">A cobrar en local</p>

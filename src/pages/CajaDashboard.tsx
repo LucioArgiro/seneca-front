@@ -5,10 +5,7 @@ import { ModalNuevoMovimiento } from '../components/caja/ModalNuevoMovimiento';
 import { useAuthStore } from '../store/auth';
 import { cajaApi } from '../api/caja'; // Asegúrate de importar la API aquí
 import { toast } from 'react-hot-toast';
-import {
-  Wallet, TrendingUp, TrendingDown, Plus, ArrowUpRight, ArrowDownRight, Loader2, Calendar,
-  Users, ChevronDown, FileText, Check, User, FileSpreadsheet // 👈 Agregado icono Excel
-} from 'lucide-react';
+import {Wallet, TrendingUp, TrendingDown, Plus, ArrowUpRight, ArrowDownRight, Loader2, Calendar, Users, ChevronDown, FileText, Check, User, FileSpreadsheet, CreditCard} from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import dayjs from 'dayjs';
 
@@ -225,16 +222,31 @@ export const CajaDashboard = ({ role }: Props) => {
         </div>
       </div>
 
-      {/* TARJETAS KPI */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+     {/* TARJETAS KPI */}
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${caja?.seniasMes !== undefined ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4 md:gap-6 mb-6 md:mb-8`}>
+        
         <StatCard
           title={(!selectedCajaId || selectedCajaId === 'CENTRAL') ? "Saldo Real en Caja" : "Saldo Virtual (Cuenta)"}
           value={Number(caja?.saldo || 0)}
           icon={Wallet} color="blue"
           subtext={role === 'ADMIN' && (!selectedCajaId || selectedCajaId === 'CENTRAL') ? "Dinero físico total" : "Balance acumulado"}
         />
-        <StatCard title="Ingresos (Mes)" value={ingresosMes} icon={TrendingUp} color="green" subtext="Entradas" />
+        
+        {/* Aclaramos que son Ingresos Físicos para que no se confundan con la seña */}
+        <StatCard title="Ingresos Físicos (Mes)" value={ingresosMes} icon={TrendingUp} color="green" subtext="Entradas en mano" />
+        
         <StatCard title="Egresos (Mes)" value={egresosMes} icon={TrendingDown} color="orange" subtext="Salidas" />
+
+        {/* 👇 NUEVA TARJETA: Solo aparece en las vistas de Barberos 👇 */}
+        {caja?.seniasMes !== undefined && (
+          <StatCard 
+            title="Señas en Admin (Mes)" 
+            value={Number(caja.seniasMes)} 
+            icon={CreditCard} 
+            color="purple" // Un color distinto para separarlo del efectivo
+            subtext="Dinero seguro en el sistema" 
+          />
+        )}
       </div>
 
       {/* GRID PRINCIPAL */}

@@ -27,9 +27,10 @@ export interface Movimiento {
 export interface CajaResponse {
     info: {
         id: string;
-        // Para el Admin: Es el dinero físico en caja.
-        // Para el Barbero: Es su "Saldo a Favor" (Lo que generó - Lo que retiró).
         saldo: number;
+        nombre?: string;
+        usuario?: any;
+        seniasMes?: number;
     };
     movimientos: Movimiento[];
 }

@@ -4,7 +4,7 @@ interface StatCardProps {
   title: string;
   value: number;
   icon: LucideIcon;
-  color: 'blue' | 'green' | 'red' | 'orange';
+  color: 'blue' | 'green' | 'red' | 'purple' | 'orange';
   subtext?: string;
 }
 
@@ -15,6 +15,7 @@ export const StatCard = ({ title, value, icon: Icon, color, subtext }: StatCardP
     blue:   'bg-[#131313] text-[#C9A227] hover:bg-[#C6A227] hover:text-[#131313]',
     green:  'bg-[#131313] text-[#C9A227] hover:bg-[#C6A227] hover:text-[#131313]',
     red:    'bg-red-500/10 text-red-400 border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.15)]',
+    purple: 'bg-[#131313] text-[#C9A227] hover:bg-[#C6A227] hover:text-[#131313]',
     orange: 'bg-[#131313] text-[#C9A227] hover:bg-[#C6A227] hover:text-[#131313]',
   };
 
