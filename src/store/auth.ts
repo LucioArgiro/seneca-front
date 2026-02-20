@@ -32,10 +32,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       // 1. Truco Anti-Caché: Agregamos un timestamp (?t=...) para que la URL sea siempre única
       const { data } = await api.get(`/auth/verify?t=${new Date().getTime()}`);
-
-      console.log("Datos recibidos en verify:", data); // 👈 DEBUG PARA VER SI LLEGA EL NOMBRE
-
-      // 2. Validación de Seguridad: Si no hay usuario dentro de data, lanzamos error manual
       if (!data || !data.user) {
         throw new Error("Respuesta vacía o sin usuario");
       }

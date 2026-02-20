@@ -101,9 +101,6 @@ export const useAdminAgenda = (barberoId?: string) => {
 
         if (action === 'BLOQUEAR' || action === 'DESCANSO') {
             setModalConfig({ isOpen: true, type: 'PARTICULAR', ...dataContext });
-        } else if (action === 'AGENDAR') {
-            console.log('Abrir modal de agendar para:', dataContext);
-            // Aquí podrías abrir un modal para crear turno manual si lo implementas a futuro
         }
     };
 
