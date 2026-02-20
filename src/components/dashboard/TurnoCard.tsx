@@ -76,7 +76,7 @@ export const TurnoCard = ({ turno, onCancel }: TurnoCardProps) => {
   return (
     <div className="bg-granular-dark rounded-2xl p-6 border border-[#C9A227]/30 shadow-xl relative overflow-hidden group w-full mx-auto hover:shadow-[0_0_20px_rgba(201,162,39,0.1)] transition-all">
 
-      {/* CABECERA */}
+      {/* CABECERA EN TurnoCard.tsx */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1 pr-4">
           <h3 className="text-2xl font-black text-white leading-tight mb-1">{turno.servicio?.nombre}</h3>
@@ -86,16 +86,28 @@ export const TurnoCard = ({ turno, onCancel }: TurnoCardProps) => {
         </div>
 
         <div className="text-right shrink-0">
-          <span className={`text-[10px] font-black py-1 rounded uppercase tracking-widest mb-1 inline-block
-              ${isConfirmado ? 'text-[#C9A227]' : isPendiente ? 'bg-zinc-800 text-zinc-400 border-zinc-700' : 'bg-zinc-900 text-zinc-500 border-zinc-800'}`}>
+          <span className={`text-[10px] font-black py-1 px-2 rounded uppercase tracking-widest mb-2 inline-block
+              ${isConfirmado ? 'bg-[#C9A227]/10 text-[#C9A227] border border-[#C9A227]/20' : isPendiente ? 'bg-zinc-800 text-zinc-400 border border-zinc-700' : 'bg-zinc-900 text-zinc-500 border border-zinc-800'}`}>
             {turno.estado}
           </span>
-          <span className={`block text-3xl font-black tracking-tight ${saldoPendiente === 0 ? 'text-green-500' : 'text-zinc-300'}`}>
-            ${precioTotal}
-          </span>
-          {saldoPendiente > 0 && (
-            <p className="text-[10px] text-zinc-500 font-bold uppercase">Resta: ${saldoPendiente}</p>
+          {montoPagado === 0 ? (
+            <span className="block text-3xl font-black tracking-tight text-zinc-300">
+              ${precioTotal}
+            </span>
+          ) : (
+            <div className="flex flex-col items-end text-xs">
+              <p className="text-zinc-400">Total: <span className="font-bold">${precioTotal}</span></p>
+              <p className="text-green-500/90 mb-1">Seña (Admin): <span className="font-bold">-${montoPagado}</span></p>
+
+              <div className="border-t border-white/10 pt-1 mt-1 text-right">
+                <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-0.5">A cobrar en local</p>
+                <span className="block text-2xl font-black tracking-tight text-white">
+                  ${saldoPendiente}
+                </span>
+              </div>
+            </div>
           )}
+
         </div>
       </div>
 
