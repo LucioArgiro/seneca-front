@@ -40,7 +40,7 @@ export const Footer = () => {
                         {/* REDES SOCIALES */}
                         <div className="flex gap-3 justify-center mr-20 z-10 relative">
                             <a key="instagram" href="https://www.instagram.com/barberiaseneca/" className="bg-[#131313] p-2.5 rounded-lg border border-white/5 text-zinc-400 hover:bg-[#C9A227] hover:text-[#131313] hover:border-[#C9A227] transition-all duration-300 hover:-translate-y-1"><Instagram size={18} /></a>
-                            <WhatsAppBtn telefono={negocio?.telefono || "+54 9 381 208-9809"} tipo="ICON" iconSize={18} className="bg-[#131313] p-2.5 rounded-lg border border-white/5 text-zinc-400 hover:bg-[#C9A227] hover:text-[#131313] hover:border-[#C9A227] transition-all duration-300 hover:-translate-y-1 flex items-center justify-center"/>
+                            <WhatsAppBtn telefono={negocio?.telefono || "+54 9 381 208-9809"} tipo="ICON" iconSize={18} className="bg-[#131313] p-2.5 rounded-lg border border-white/5 text-zinc-400 hover:bg-[#C9A227] hover:text-[#131313] hover:border-[#C9A227] transition-all duration-300 hover:-translate-y-1 flex items-center justify-center" />
                         </div>
                     </div>
 
@@ -102,11 +102,8 @@ export const Footer = () => {
                 {/* BARRA INFERIOR */}
                 <div className="border-t border-zinc-700 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-widest text-zinc z-10 relative">
                     <p>© {new Date().getFullYear()} SÉNECA BARBERÍA. Todos los derechos reservados.</p>
-                    <p className="flex items-center gap-1">
-                        Designed by <span className="text-[#C9A227]">LUCIO A. ARGIRO</span>
-                    </p>
+                    <p className="flex items-center gap-1">Designed by{' '}<a href="https://www.instagram.com/lucio_arg1" target="_blank" rel="noopener noreferrer" className="text-[#C9A227] hover:text-white transition-colors font-bold cursor-pointer">LUCIO A. ARGIRO</a> </p>
                 </div>
-
             </div>
         </footer>
     );
