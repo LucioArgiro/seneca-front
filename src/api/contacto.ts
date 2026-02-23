@@ -1,10 +1,10 @@
 import emailjs from '@emailjs/browser';
 
 // Credenciales Generales
-const SERVICE_ID = "service_0tc4sa6"; 
-const PUBLIC_KEY = "S21MKFYQSM-5ntn1X"; 
-const TEMPLATE_ID_CONTACTO = "template_gmzod9m"; 
-const TEMPLATE_ID_RECUPERACION = "template_y0dgsv6";
+const SERVICE_ID = "service_lcbo5jp"; 
+const PUBLIC_KEY = "Y5-nkSwz5RlGTK7H9"; 
+const TEMPLATE_ID_CONTACTO = "template_981s86f"; 
+const TEMPLATE_ID_RECUPERACION = "template_mcsfdb3";
 
 export interface ContactoData {
     nombre: string;
