@@ -11,7 +11,7 @@ interface TurnoCardProps {
   onCancel: (id: string) => void;
 }
 
-const TELEFONO_ADMIN = "5493815790448";
+const TELEFONO_ADMIN = "+5493812089809";
 
 export const TurnoCard = ({ turno, onCancel }: TurnoCardProps) => {
   const navigate = useNavigate();
@@ -29,14 +29,8 @@ export const TurnoCard = ({ turno, onCancel }: TurnoCardProps) => {
   const precioTotal = Number(turno.servicio?.precio) || 0;
   const montoPagado = isPagado ? Number(turno.pago?.monto) : 0;
   const saldoPendiente = Math.max(0, precioTotal - montoPagado);
-
-  // 👇 LÓGICA DE COBRO DINÁMICA (Aquí está el cambio clave)
-  // 1. Obtenemos el precio de la seña real (sin defaults falsos)
   const precioSeniaConfigurado = Number(turno.barbero?.precioSenia) || 0;
-
-  // 2. Decidimos qué cobrar: ¿Tiene seña? -> Seña. ¿No tiene? -> Total.
   const hayQuePagarSenia = precioSeniaConfigurado > 0;
-
   const montoAPagarAhora = hayQuePagarSenia ? precioSeniaConfigurado : precioTotal;
   const tipoPagoApi = hayQuePagarSenia ? 'SENIA' : 'TOTAL';
   const etiquetaPago = hayQuePagarSenia ? 'Seña' : 'Total';
@@ -51,8 +45,7 @@ export const TurnoCard = ({ turno, onCancel }: TurnoCardProps) => {
 
   const puedeReprogramar = !isCompletado && (isPendiente || isConfirmado) && diffHoras > HORAS_ANTICIPACION;
   const puedeCancelar = !isCompletado && (isPendiente || isConfirmado) && !isPagado && diffHoras > HORAS_ANTICIPACION;
-
-  const telefonoContacto = turno.barbero?.usuario?.telefono || TELEFONO_ADMIN;
+  const telefonoContacto = turno.barbero?.telefono || TELEFONO_ADMIN;
 
   const handlePagarAhora = async () => {
     try {
