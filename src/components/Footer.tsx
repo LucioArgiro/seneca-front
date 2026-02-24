@@ -86,7 +86,7 @@ export const Footer = () => {
                             </li>
                             <li className="flex justify-between items-center border-b border-zinc-700 pb-3 pt-1">
                                 <span className="text-zinc font-medium">Sábados</span>
-                                <span className="font-mono font-bold text-zinc-300">10:00 - 18:00</span>
+                                <span className="font-mono font-bold text-zinc-300">09:00 - 22:00</span>
                             </li>
                             <li className="flex justify-between items-center pt-2">
                                 <span className="text-zinc font-medium">Domingos</span>
